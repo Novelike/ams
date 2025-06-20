@@ -1,0 +1,202 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css");
+@import url("https://fonts.googleapis.com/css?family=Roboto:300,700,400");
+
+:root {
+  /* Colors */
+  --lineardark-blue: rgba(52, 71, 103, 1);
+  --lineargrey: rgba(123, 128, 154, 1);
+  --linearlight-grey: rgba(168, 184, 216, 1);
+  --linearblue: rgba(26, 115, 231, 1);
+  --linearlight-blue: rgba(22, 192, 232, 1);
+  --linearred: rgba(233, 31, 99, 1);
+  --linearred-orange: rgba(244, 67, 52, 1);
+  --linearorange: rgba(251, 140, 0, 1);
+  --lineargreen: rgba(76, 175, 80, 1);
+  --linearlight-green: rgba(188, 225, 190, 1);
+  --linearwhite: rgba(255, 255, 255, 1);
+  --linearcloud: rgba(248, 249, 250, 1);
+  --linearbackground: rgba(240, 242, 245, 1);
+  --linearsnow: rgba(233, 234, 237, 1);
+  --linearmedium-grey: rgba(222, 226, 232, 1);
+  --lineardark-snow: rgba(199, 204, 208, 1);
+  --lineardark-mud: rgba(79, 79, 82, 1);
+  --lineardark-black: rgba(25, 25, 25, 1);
+
+  /* Shadows */
+  --drop-shadow-black: 0px 2px 6px 0px rgba(0, 0, 0, 0.25);
+  --drop-shadow-green: 0px 2px 6px 0px rgba(79, 169, 83, 0.36);
+  --drop-shadow-red: 0px 2px 6px 0px rgba(220, 34, 101, 0.36);
+  --drop-shadow-blue: 0px 2px 6px 0px rgba(40, 129, 235, 0.36);
+  --drop-shadow-grey: 0px 2px 6px 0px rgba(151, 172, 198, 0.25);
+
+  /* Breakpoints */
+  --breakpoint-xs: 0px;
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 960px;
+  --breakpoint-lg: 1280px;
+  --breakpoint-xl: 1920px;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0px;
+  height: 100%;
+}
+
+button:focus-visible {
+  outline: 2px solid #4a90e2 !important;
+  outline: -webkit-focus-ring-color auto 5px !important;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* Responsive styles */
+@media (max-width: 1280px) {
+  .dashboard .div {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+  }
+}
+
+@media (max-width: 960px) {
+  .menu-main {
+    width: 200px;
+  }
+
+  .menu-header, 
+  .card-report, 
+  .div-wrapper, 
+  .card-report-2,
+  .card-website-views,
+  .overlap-wrapper,
+  .overlap-group-wrapper,
+  .section,
+  .footer-primary {
+    left: 220px !important;
+    width: calc(100% - 240px) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .menu-main {
+    width: 64px;
+    overflow: hidden;
+  }
+
+  .menu-main .text-wrapper-16,
+  .menu-main .text-wrapper-17 {
+    display: none;
+  }
+
+  .menu-header, 
+  .card-report, 
+  .div-wrapper, 
+  .card-report-2,
+  .card-website-views,
+  .overlap-wrapper,
+  .overlap-group-wrapper,
+  .section,
+  .footer-primary {
+    left: 80px !important;
+    width: calc(100% - 100px) !important;
+  }
+
+  .card-report, 
+  .div-wrapper, 
+  .card-report-2 {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 10px auto !important;
+  }
+
+  .card-website-views,
+  .overlap-wrapper,
+  .overlap-group-wrapper {
+    width: 100% !important;
+    margin-bottom: 20px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .menu-main {
+    position: fixed;
+    z-index: 1000;
+    height: auto;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 8px;
+  }
+
+  .menu-main .logo,
+  .menu-main .line-2 {
+    display: none;
+  }
+
+  .menu-main .main-nav {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .menu-main .main-nav > div {
+    flex: 1;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .menu-main .a,
+  .menu-main .icon-dashboard {
+    margin-right: 0 !important;
+  }
+
+  .menu-header, 
+  .card-report, 
+  .div-wrapper, 
+  .card-report-2,
+  .card-website-views,
+  .overlap-wrapper,
+  .overlap-group-wrapper,
+  .section,
+  .footer-primary {
+    left: 0 !important;
+    width: 100% !important;
+  }
+
+  .menu-header {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto !important;
+    padding: 10px;
+  }
+
+  .menu-header > div:last-child {
+    margin-top: 10px;
+    align-self: flex-end;
+  }
+
+  .section {
+    overflow-x: auto;
+  }
+
+  .footer-primary {
+    flex-direction: column;
+    height: auto !important;
+    padding: 10px 0;
+  }
+
+  .footer-primary .side-links {
+    margin-top: 10px;
+  }
+}

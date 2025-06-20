@@ -1,0 +1,8 @@
+<svg width="304" height="99" viewBox="0 0 304 99" fill="none" xmlns="http://www.w3.org/2000/svg">
+	<g opacity="0.5">
+		<path d="M0 1H304" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M0 33H304" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M0 65H304" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M0 98H304" stroke="white" stroke-dasharray="4 4"/>
+	</g>
+</svg>

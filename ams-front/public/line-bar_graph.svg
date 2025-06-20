@@ -1,0 +1,13 @@
+<svg width="329" height="99" viewBox="0 0 329 99" fill="none" xmlns="http://www.w3.org/2000/svg">
+	<g opacity="0.5">
+		<rect x="0.5" y="0.5" width="328" height="98" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M0.5 65.5H328.5" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M0.5 33H328.5" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M48 99L48 2" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M96 99L96 2" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M144 99L144 2" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M192 99L192 2" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M240 99L240 2" stroke="white" stroke-dasharray="4 4"/>
+		<path d="M288 99L288 2" stroke="white" stroke-dasharray="4 4"/>
+	</g>
+</svg>

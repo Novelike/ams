@@ -1,0 +1,2737 @@
+<html lang="ko">
+<head>
+	<script type="module">import {injectIntoGlobalHook} from "/@react-refresh";
+
+	injectIntoGlobalHook(window);
+	window.$RefreshReg$ = () => {
+	};
+	window.$RefreshSig$ = () => (type) => type;</script>
+
+	<script type="module" src="/@vite/client"></script>
+
+	<meta charset="UTF-8">
+	<link rel="icon" type="image/svg+xml" href="/novelike-logo-white.svg">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Vite + React</title>
+	<style type="text/css"
+	       data-vite-dev-id="D:/WIDE/workspace/dms/src/index.css">@import url("https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css");
+	@import url("https://fonts.googleapis.com/css?family=Roboto:300,700,400");
+
+	:root {
+		/* Colors */
+		--lineardark-blue: rgba(52, 71, 103, 1);
+		--lineargrey: rgba(123, 128, 154, 1);
+		--linearlight-grey: rgba(168, 184, 216, 1);
+		--linearblue: rgba(26, 115, 231, 1);
+		--linearlight-blue: rgba(22, 192, 232, 1);
+		--linearred: rgba(233, 31, 99, 1);
+		--linearred-orange: rgba(244, 67, 52, 1);
+		--linearorange: rgba(251, 140, 0, 1);
+		--lineargreen: rgba(76, 175, 80, 1);
+		--linearlight-green: rgba(188, 225, 190, 1);
+		--linearwhite: rgba(255, 255, 255, 1);
+		--linearcloud: rgba(248, 249, 250, 1);
+		--linearbackground: rgba(240, 242, 245, 1);
+		--linearsnow: rgba(233, 234, 237, 1);
+		--linearmedium-grey: rgba(222, 226, 232, 1);
+		--lineardark-snow: rgba(199, 204, 208, 1);
+		--lineardark-mud: rgba(79, 79, 82, 1);
+		--lineardark-black: rgba(25, 25, 25, 1);
+
+		/* Shadows */
+		--drop-shadow-black: 0px 2px 6px 0px rgba(0, 0, 0, 0.25);
+		--drop-shadow-green: 0px 2px 6px 0px rgba(79, 169, 83, 0.36);
+		--drop-shadow-red: 0px 2px 6px 0px rgba(220, 34, 101, 0.36);
+		--drop-shadow-blue: 0px 2px 6px 0px rgba(40, 129, 235, 0.36);
+		--drop-shadow-grey: 0px 2px 6px 0px rgba(151, 172, 198, 0.25);
+
+		/* Breakpoints */
+		--breakpoint-xs: 0px;
+		--breakpoint-sm: 600px;
+		--breakpoint-md: 960px;
+		--breakpoint-lg: 1280px;
+		--breakpoint-xl: 1920px;
+	}
+
+	* {
+		-webkit-font-smoothing: antialiased;
+		box-sizing: border-box;
+	}
+
+	html,
+	body {
+		margin: 0px;
+		height: 100%;
+	}
+
+	button:focus-visible {
+		outline: 2px solid #4a90e2 !important;
+		outline: -webkit-focus-ring-color auto 5px !important;
+	}
+
+	a {
+		text-decoration: none;
+	}
+
+	/* Responsive styles */
+	@media (max-width: 1280px) {
+		.dashboard .div {
+			width: 100%;
+			height: auto;
+			min-height: 100vh;
+		}
+	}
+
+	@media (max-width: 960px) {
+		.menu-main {
+			width: 200px;
+		}
+
+		.menu-header,
+		.card-report,
+		.div-wrapper,
+		.card-report-2,
+		.card-website-views,
+		.overlap-wrapper,
+		.overlap-group-wrapper,
+		.section,
+		.footer-primary {
+			left: 220px !important;
+			width: calc(100% - 240px) !important;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.menu-main {
+			width: 64px;
+			overflow: hidden;
+		}
+
+		.menu-main .text-wrapper-16,
+		.menu-main .text-wrapper-17 {
+			display: none;
+		}
+
+		.menu-header,
+		.card-report,
+		.div-wrapper,
+		.card-report-2,
+		.card-website-views,
+		.overlap-wrapper,
+		.overlap-group-wrapper,
+		.section,
+		.footer-primary {
+			left: 80px !important;
+			width: calc(100% - 100px) !important;
+		}
+
+		.card-report,
+		.div-wrapper,
+		.card-report-2 {
+			position: relative !important;
+			top: 0 !important;
+			left: 0 !important;
+			margin: 10px auto !important;
+		}
+
+		.card-website-views,
+		.overlap-wrapper,
+		.overlap-group-wrapper {
+			width: 100% !important;
+			margin-bottom: 20px !important;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.menu-main {
+			position: fixed;
+			z-index: 1000;
+			height: auto;
+			bottom: 0;
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-around;
+			padding: 8px;
+		}
+
+		.menu-main .logo,
+		.menu-main .line-2 {
+			display: none;
+		}
+
+		.menu-main .main-nav {
+			flex-direction: row;
+			width: 100%;
+		}
+
+		.menu-main .main-nav > div {
+			flex: 1;
+			height: 40px;
+			padding: 0;
+			justify-content: center;
+		}
+
+		.menu-main .a,
+		.menu-main .icon-dashboard {
+			margin-right: 0 !important;
+		}
+
+		.menu-header,
+		.card-report,
+		.div-wrapper,
+		.card-report-2,
+		.card-website-views,
+		.overlap-wrapper,
+		.overlap-group-wrapper,
+		.section,
+		.footer-primary {
+			left: 0 !important;
+			width: 100% !important;
+		}
+
+		.menu-header {
+			flex-direction: column;
+			align-items: flex-start;
+			height: auto !important;
+			padding: 10px;
+		}
+
+		.menu-header > div:last-child {
+			margin-top: 10px;
+			align-self: flex-end;
+		}
+
+		.section {
+			overflow-x: auto;
+		}
+
+		.footer-primary {
+			flex-direction: column;
+			height: auto !important;
+			padding: 10px 0;
+		}
+
+		.footer-primary .side-links {
+			margin-top: 10px;
+		}
+	}
+	</style>
+	<style type="text/css" data-vite-dev-id="D:/WIDE/workspace/dms/src/App.css">#root {
+		width: 100%;
+		max-width: 100%;
+		margin: 0 auto;
+		padding: 2rem;
+		text-align: center;
+	}
+
+	.logo {
+		height: 6em;
+		padding: 1.5em;
+		will-change: filter;
+		transition: filter 300ms;
+	}
+
+	.logo:hover {
+		filter: drop-shadow(0 0 2em #646cffaa);
+	}
+
+	.logo.react:hover {
+		filter: drop-shadow(0 0 2em #61dafbaa);
+	}
+
+	@keyframes logo-spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		a:nth-of-type(2) .logo {
+			animation: logo-spin infinite 20s linear;
+		}
+	}
+
+	.card {
+		padding: 2em;
+	}
+
+	.read-the-docs {
+		color: #888;
+	}
+	</style>
+	<style data-emotion="css-global" data-s="">html {
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		box-sizing: border-box;
+		-webkit-text-size-adjust: 100%;
+	}</style>
+	<style data-emotion="css-global" data-s="">*, *::before, *::after {
+		box-sizing: inherit;
+	}</style>
+	<style data-emotion="css-global" data-s="">strong, b {
+		font-weight: 700;
+	}</style>
+	<style data-emotion="css-global" data-s="">body {
+		margin: 0;
+		color: rgba(52, 71, 103, 1);
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		background-color: rgba(240, 242, 245, 1);
+	}</style>
+	<style data-emotion="css-global" data-s="">@media print {
+		body {
+			background-color: #fff;
+		}
+	}</style>
+	<style data-emotion="css-global" data-s="">body::backdrop {
+		background-color: rgba(240, 242, 245, 1);
+	}</style>
+	<style data-emotion="css" data-s="">.css-9t9i43 {
+		background-color: #f0f2f5;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-flex-direction: row;
+		-ms-flex-direction: row;
+		flex-direction: row;
+		-webkit-box-pack: center;
+		-ms-flex-pack: center;
+		-webkit-justify-content: center;
+		justify-content: center;
+		width: 100%;
+	}</style>
+	<style data-emotion="css" data-s="">.css-vjdv83 {
+		background-color: var(--linearbackground);
+		position: relative;
+		overflow: hidden;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-vjdv83 {
+			width: 100%;
+			min-height: 100vh;
+			height: auto;
+			padding-bottom: 60px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-vjdv83 {
+			padding-bottom: 20px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-vjdv83 {
+			min-height: 1238px;
+			height: 1238px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 1536px) {
+		.css-vjdv83 {
+			width: 1600px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-aeb1u5 {
+		left: 0;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		background: linear-gradient(180deg, rgba(62, 61, 69, 1) 0%, rgba(32, 32, 32, 1) 100%);
+		z-index: 1000;
+		-webkit-transition: all 0.3s ease;
+		transition: all 0.3s ease;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-aeb1u5 {
+			position: fixed;
+			width: 100%;
+			height: auto;
+			top: auto;
+			bottom: 0;
+			-webkit-flex-direction: row;
+			-ms-flex-direction: row;
+			flex-direction: row;
+			padding: 8px;
+			border-radius: 8px 8px 0 0;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-aeb1u5 {
+			width: 64px;
+			height: 100%;
+			top: 0;
+			bottom: auto;
+			-webkit-flex-direction: column;
+			-ms-flex-direction: column;
+			flex-direction: column;
+			padding: 16px;
+			border-radius: 8px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-aeb1u5 {
+			position: absolute;
+			width: 200px;
+			height: 1048px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 1200px) {
+		.css-aeb1u5 {
+			width: 256px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-to5v0y {
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 16px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-to5v0y {
+			display: none;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-to5v0y {
+			display: -webkit-box;
+			display: -webkit-flex;
+			display: -ms-flexbox;
+			display: flex;
+			-webkit-box-pack: center;
+			-ms-flex-pack: center;
+			-webkit-justify-content: center;
+			justify-content: center;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-to5v0y {
+			-webkit-box-pack: start;
+			-ms-flex-pack: start;
+			-webkit-justify-content: flex-start;
+			justify-content: flex-start;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-unt23m {
+		position: relative;
+		width: 28px;
+		height: 28px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1lxr1or {
+		position: absolute;
+		width: 24px;
+		height: 28px;
+		top: 0;
+		left: 2px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-19gb9b2-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 500;
+		line-height: 1.4;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		font-weight: 700;
+		color: #fff;
+		white-space: nowrap;
+		font-family: Roboto, Helvetica;
+		font-size: 14px;
+		line-height: 19.6px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-cnjyvd {
+		height: 1px;
+		margin-bottom: 16px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-cnjyvd {
+			display: none;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-cnjyvd {
+			width: 100%;
+			display: block;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 1200px) {
+		.css-cnjyvd {
+			width: 224px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-1iknwoq {
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-1iknwoq {
+			-webkit-flex-direction: row;
+			-ms-flex-direction: row;
+			flex-direction: row;
+			gap: 4px;
+			width: 100%;
+			-webkit-box-pack: space-around;
+			-ms-flex-pack: space-around;
+			-webkit-justify-content: space-around;
+			justify-content: space-around;
+			-webkit-align-items: center;
+			-webkit-box-align: center;
+			-ms-flex-align: center;
+			align-items: center;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-1iknwoq {
+			-webkit-flex-direction: column;
+			-ms-flex-direction: column;
+			flex-direction: column;
+			gap: 12px;
+			width: auto;
+			-webkit-box-pack: start;
+			-ms-flex-pack: start;
+			-webkit-justify-content: flex-start;
+			justify-content: flex-start;
+			-webkit-align-items: stretch;
+			-webkit-box-align: stretch;
+			-ms-flex-align: stretch;
+			align-items: stretch;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-1pex2xh {
+		border-radius: 8px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		background-color: var(--lineardark-mud);
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-1pex2xh {
+			height: 40px;
+			width: 40px;
+			padding: 0;
+			-webkit-box-pack: center;
+			-ms-flex-pack: center;
+			-webkit-justify-content: center;
+			justify-content: center;
+			-webkit-flex: 1;
+			-ms-flex: 1;
+			flex: 1;
+			max-width: 60px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-1pex2xh {
+			height: 48px;
+			width: auto;
+			padding: 0 16px;
+			-webkit-box-pack: start;
+			-ms-flex-pack: start;
+			-webkit-justify-content: flex-start;
+			justify-content: flex-start;
+			-webkit-flex: none;
+			-ms-flex: none;
+			flex: none;
+			max-width: none;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-1pex2xh:hover {
+		background-color: var(--lineardark-mud);
+		cursor: pointer;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1tc2gvj {
+		width: 20px;
+		height: 20px;
+		color: white;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-1tc2gvj {
+			margin-right: 0;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-1tc2gvj {
+			margin-right: 16px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-ptiqhd-MuiSvgIcon-root {
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		width: 1em;
+		height: 1em;
+		display: inline-block;
+		fill: currentColor;
+		-webkit-flex-shrink: 0;
+		-ms-flex-negative: 0;
+		flex-shrink: 0;
+		-webkit-transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+		transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+		font-size: 1.25rem;
+	}</style>
+	<style data-emotion="css" data-s="">.css-15kbwkb-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		font-family: Roboto, Helvetica;
+		font-size: 14px;
+		font-weight: 400;
+		line-height: 19.6px;
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-15kbwkb-MuiTypography-root {
+			display: none;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-15kbwkb-MuiTypography-root {
+			display: block;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-y9f28q {
+		width: 8px;
+		height: 8px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-y9f28q {
+			display: none;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-y9f28q {
+			display: block;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-4ez8pb {
+		border-radius: 8px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		background-color: var(--linearred);
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-4ez8pb {
+			height: 40px;
+			width: 40px;
+			padding: 0;
+			-webkit-box-pack: center;
+			-ms-flex-pack: center;
+			-webkit-justify-content: center;
+			justify-content: center;
+			-webkit-flex: 1;
+			-ms-flex: 1;
+			flex: 1;
+			max-width: 60px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-4ez8pb {
+			height: 48px;
+			width: auto;
+			padding: 0 16px;
+			-webkit-box-pack: start;
+			-ms-flex-pack: start;
+			-webkit-justify-content: flex-start;
+			justify-content: flex-start;
+			-webkit-flex: none;
+			-ms-flex: none;
+			flex: none;
+			max-width: none;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-4ez8pb:hover {
+		background-color: var(--linearred);
+		cursor: pointer;
+	}</style>
+	<style data-emotion="css" data-s="">.css-bferu4 {
+		width: 20px;
+		height: 20px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		-webkit-box-pack: center;
+		-ms-flex-pack: center;
+		-webkit-justify-content: center;
+		justify-content: center;
+		color: white;
+		font-family: Roboto, Helvetica;
+		font-size: 14px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-bferu4 {
+			margin-right: 0;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-bferu4 {
+			margin-right: 16px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-wfmtut {
+		border-radius: 8px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		background-color: transparent;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-wfmtut {
+			height: 40px;
+			width: 40px;
+			padding: 0;
+			-webkit-box-pack: center;
+			-ms-flex-pack: center;
+			-webkit-justify-content: center;
+			justify-content: center;
+			-webkit-flex: 1;
+			-ms-flex: 1;
+			flex: 1;
+			max-width: 60px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-wfmtut {
+			height: 48px;
+			width: auto;
+			padding: 0 16px;
+			-webkit-box-pack: start;
+			-ms-flex-pack: start;
+			-webkit-justify-content: flex-start;
+			justify-content: flex-start;
+			-webkit-flex: none;
+			-ms-flex: none;
+			flex: none;
+			max-width: none;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-wfmtut:hover {
+		background-color: rgba(255, 255, 255, 0.1);
+		cursor: pointer;
+	}</style>
+	<style data-emotion="css" data-s="">.css-14en1f1 {
+		min-height: 48px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-pack: justify;
+		-webkit-justify-content: space-between;
+		justify-content: space-between;
+		z-index: 10;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-14en1f1 {
+			position: relative;
+			width: 100%;
+			height: auto;
+			-webkit-flex-direction: column;
+			-ms-flex-direction: column;
+			flex-direction: column;
+			-webkit-align-items: flex-start;
+			-webkit-box-align: flex-start;
+			-ms-flex-align: flex-start;
+			align-items: flex-start;
+			padding: 16px;
+			background-color: var(--linearwhite);
+			box-shadow: var(--drop-shadow-black);
+			border-radius: 8px;
+			margin: 10px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-14en1f1 {
+			-webkit-flex-direction: row;
+			-ms-flex-direction: row;
+			flex-direction: row;
+			-webkit-align-items: center;
+			-webkit-box-align: center;
+			-ms-flex-align: center;
+			align-items: center;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-14en1f1 {
+			position: absolute;
+			width: 1270px;
+			height: 48px;
+			top: 40px;
+			left: 297px;
+			padding: 0px;
+			background-color: transparent;
+			box-shadow: none;
+			border-radius: 0;
+			margin: 0px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-j7qwjs {
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-flex-direction: column;
+		-ms-flex-direction: column;
+		flex-direction: column;
+	}</style>
+	<style data-emotion="css" data-s="">.css-f3phwi-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 700;
+		line-height: 1.2;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineardark-blue);
+		font-family: Roboto, Helvetica;
+		font-weight: 700;
+		font-size: 16px;
+		line-height: 22.4px;
+		margin-bottom: 4px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-axw7ok {
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		gap: 8px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-3o0h5k {
+		width: 16px;
+		height: 16px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1xj4kcx-MuiTypography-root {
+		margin: 0;
+		font-size: 0.75rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		font-family: Roboto, Helvetica;
+		font-size: 14px;
+		line-height: 19.6px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-emimvw-MuiTypography-root {
+		margin: 0;
+		font-size: 0.75rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineardark-blue);
+		font-family: Roboto, Helvetica;
+		font-size: 14px;
+		line-height: 19.6px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-j0ozid {
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		gap: 16px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-12bcj28 {
+		width: 16px;
+		height: 16px;
+		background-image: url('https://c.animaapp.com/6S1yK5Ge/img/icon-16px-settings.svg');
+		-webkit-background-size: contain;
+		background-size: contain;
+		background-repeat: no-repeat;
+	}</style>
+	<style data-emotion="css" data-s="">.css-79elbk {
+		position: relative;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1s9nndm {
+		position: absolute;
+		top: -8px;
+		right: -8px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-zj48vm {
+		width: 16px;
+		height: 16px;
+		border-radius: 19px;
+		background-color: var(--linearred);
+		color: white;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		-webkit-box-pack: center;
+		-ms-flex-pack: center;
+		-webkit-justify-content: center;
+		justify-content: center;
+		font-family: Roboto, Helvetica;
+		font-size: 10px;
+		font-weight: 700;
+		line-height: 14px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1fsggnv {
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-flex-wrap: wrap;
+		-webkit-flex-wrap: wrap;
+		-ms-flex-wrap: wrap;
+		flex-wrap: wrap;
+		gap: 20px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-1fsggnv {
+			position: relative;
+			-webkit-box-pack: center;
+			-ms-flex-pack: center;
+			-webkit-justify-content: center;
+			justify-content: center;
+			padding: 20px;
+			margin-top: 80px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-1fsggnv {
+			position: static;
+			-webkit-box-pack: start;
+			-ms-flex-pack: start;
+			-webkit-justify-content: flex-start;
+			justify-content: flex-start;
+			padding: 0px;
+			margin-top: 0px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-w3u3z6 {
+		max-width: 332px;
+		height: 134px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-w3u3z6 {
+			position: relative;
+			width: 100%;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-w3u3z6 {
+			width: 332px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-w3u3z6 {
+			position: absolute;
+			top: 132px;
+			left: 297px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-11v1dr5 {
+		position: relative;
+		height: 134px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-xjgjb1 {
+		width: 100%;
+		height: 134px;
+		position: absolute;
+		top: 0;
+		left: 0;
+		border-radius: 8px;
+		background-color: var(--linearwhite);
+		box-shadow: var(--drop-shadow-black);
+	}</style>
+	<style data-emotion="css" data-s="">.css-14ro7fu {
+		width: 64px;
+		height: 64px;
+		position: absolute;
+		top: -18px;
+		left: 16px;
+		border-radius: 8px;
+		background: #b8b8ff;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		-webkit-box-pack: center;
+		-ms-flex-pack: center;
+		-webkit-justify-content: center;
+		justify-content: center;
+		color: white;
+		z-index: 1;
+	}</style>
+	<style data-emotion="css" data-s="">.css-i4bv87-MuiSvgIcon-root {
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		width: 1em;
+		height: 1em;
+		display: inline-block;
+		fill: currentColor;
+		-webkit-flex-shrink: 0;
+		-ms-flex-negative: 0;
+		flex-shrink: 0;
+		-webkit-transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+		transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+		font-size: 1.5rem;
+	}</style>
+	<style data-emotion="css" data-s="">.css-r5h87n-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		position: absolute;
+		top: 16px;
+		right: 16px;
+		font-family: Roboto, Helvetica;
+		font-weight: 300;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: 19.6px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-182m1i7-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineardark-blue);
+		position: absolute;
+		top: 40px;
+		right: 16px;
+		font-family: Roboto, Helvetica;
+		font-weight: 700;
+		font-size: 18px;
+		letter-spacing: 0;
+		line-height: 25.2px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1orpcy1 {
+		position: absolute;
+		width: 90%;
+		height: 1px;
+		top: 92px;
+		left: 16px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1akmsmo-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		position: absolute;
+		top: 104px;
+		left: 16px;
+		font-family: Roboto, Helvetica;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: 19.6px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1y4nmri {
+		font-weight: 700;
+		color: var(--lineargreen);
+	}</style>
+	<style data-emotion="css" data-s="">.css-1m708gl {
+		font-weight: 300;
+		color: var(--lineargrey);
+	}</style>
+	<style data-emotion="css" data-s="">.css-1rba6c6 {
+		max-width: 332px;
+		height: 134px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-1rba6c6 {
+			position: relative;
+			width: 100%;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-1rba6c6 {
+			width: 332px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-1rba6c6 {
+			position: absolute;
+			top: 132px;
+			left: 649px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-19ge24a {
+		width: 64px;
+		height: 64px;
+		position: absolute;
+		top: -18px;
+		left: 16px;
+		border-radius: 8px;
+		background: linear-gradient(180deg, rgba(233, 59, 119, 1) 0%, rgba(218, 31, 99, 1) 100%);
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		-webkit-box-pack: center;
+		-ms-flex-pack: center;
+		-webkit-justify-content: center;
+		justify-content: center;
+		color: white;
+		z-index: 1;
+	}</style>
+	<style data-emotion="css" data-s="">.css-gs83td {
+		max-width: 332px;
+		height: 134px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-gs83td {
+			position: relative;
+			width: 100%;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-gs83td {
+			width: 332px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-gs83td {
+			position: absolute;
+			top: 132px;
+			left: 1001px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-choogj {
+		width: 64px;
+		height: 64px;
+		position: absolute;
+		top: -18px;
+		left: 16px;
+		border-radius: 8px;
+		background: linear-gradient(180deg, rgba(67, 157, 238, 1) 0%, rgba(30, 120, 233, 1) 100%);
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		-webkit-box-pack: center;
+		-ms-flex-pack: center;
+		-webkit-justify-content: center;
+		justify-content: center;
+		color: white;
+		z-index: 1;
+	}</style>
+	<style data-emotion="css" data-s="">.css-dyeeg1-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		position: absolute;
+		top: 104px;
+		left: 16px;
+		font-family: Roboto, Helvetica;
+		font-weight: 300;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: 19.6px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1jqwjxs {
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-flex-wrap: wrap;
+		-webkit-flex-wrap: wrap;
+		-ms-flex-wrap: wrap;
+		flex-wrap: wrap;
+		gap: 20px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-1jqwjxs {
+			-webkit-flex-direction: column;
+			-ms-flex-direction: column;
+			flex-direction: column;
+			position: relative;
+			-webkit-box-pack: center;
+			-ms-flex-pack: center;
+			-webkit-justify-content: center;
+			justify-content: center;
+			padding: 20px;
+			margin-top: 20px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-1jqwjxs {
+			position: static;
+			-webkit-box-pack: start;
+			-ms-flex-pack: start;
+			-webkit-justify-content: flex-start;
+			justify-content: flex-start;
+			padding: 0px;
+			margin-top: 0px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 1200px) {
+		.css-1jqwjxs {
+			-webkit-flex-direction: row;
+			-ms-flex-direction: row;
+			flex-direction: row;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-1wpw8of {
+		max-width: 410px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-1wpw8of {
+			position: relative;
+			width: 100%;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-1wpw8of {
+			width: 410px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-1wpw8of {
+			position: absolute;
+			top: 282px;
+			left: 297px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-68wnrc {
+		width: 410px;
+		height: 351px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-r1m718 {
+		position: relative;
+		height: 351px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1q7ye6x {
+		width: 410px;
+		height: 327px;
+		position: absolute;
+		top: 24px;
+		left: 0;
+		border-radius: 8px;
+		box-shadow: var(--drop-shadow-black);
+		background-color: var(--linearwhite);
+	}</style>
+	<style data-emotion="css" data-s="">.css-1bt2k3j-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineardark-blue);
+		position: absolute;
+		top: 227px;
+		left: 23px;
+		font-family: Roboto, Helvetica;
+		font-weight: 700;
+		font-size: 16px;
+		letter-spacing: 0;
+		line-height: 22.4px;
+		white-space: nowrap;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1yja4ui-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		position: absolute;
+		top: 305px;
+		left: 39px;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: 19.6px;
+		white-space: nowrap;
+	}</style>
+	<style data-emotion="css" data-s="">.css-4bo847 {
+		position: absolute;
+		width: 12px;
+		height: 12px;
+		top: 310px;
+		left: 23px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1hi012y {
+		position: absolute;
+		width: 378px;
+		height: 1px;
+		top: 288px;
+		left: 16px;
+		object-fit: cover;
+	}</style>
+	<style data-emotion="css" data-s="">.css-c4gbaz {
+		position: absolute;
+		width: 378px;
+		height: 202px;
+		top: 0;
+		left: 16px;
+		border-radius: 8px;
+		box-shadow: var(--drop-shadow-red);
+		background: linear-gradient(180deg, rgba(233, 59, 119, 1) 0%, rgba(218, 31, 99, 1) 100%);
+	}</style>
+	<style data-emotion="css" data-s="">.css-3py7a8 {
+		position: absolute;
+		width: 354px;
+		height: 142px;
+		top: 30px;
+		left: 28px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1ndiufr {
+		position: relative;
+		height: 142px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-12hpeby {
+		position: absolute;
+		width: 354px;
+		height: 142px;
+		top: 0;
+		left: 0;
+	}</style>
+	<style data-emotion="css" data-s="">.css-fi5x0o-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 0;
+		left: 0;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1bndwwe-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 32px;
+		left: 0;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+	}</style>
+	<style data-emotion="css" data-s="">.css-131p94r-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 64px;
+		left: 0;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1v7a0ai-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 96px;
+		left: 8px;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+	}</style>
+	<style data-emotion="css" data-s="">.css-il3d1y-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 122px;
+		left: 31px;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+		text-align: center;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1shtz8w-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 122px;
+		left: 79px;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+		text-align: center;
+	}</style>
+	<style data-emotion="css" data-s="">.css-q12elf-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 122px;
+		left: 127px;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+		text-align: center;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1vrzc3g-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 122px;
+		left: 175px;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+		text-align: center;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1wpkjwq-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 122px;
+		left: 223px;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+		text-align: center;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1wbywx6-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 122px;
+		left: 271px;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+		text-align: center;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1at3won-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 122px;
+		left: 319px;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+		text-align: center;
+	}</style>
+	<style data-emotion="css" data-s="">.css-3hx87x {
+		position: absolute;
+		width: 329px;
+		height: 99px;
+		top: 11px;
+		left: 25px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1kmspwp {
+		position: absolute;
+		width: 329px;
+		height: 99px;
+		top: 0;
+		left: 0;
+		border: 1px dashed rgba(255, 255, 255, 0.5);
+	}</style>
+	<style data-emotion="css" data-s="">.css-1usr7bi {
+		position: relative;
+		height: 99px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-c7i9qf {
+		position: absolute;
+		width: 329px;
+		height: 1px;
+		top: 30px;
+		left: 0;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1w6ba4q {
+		position: absolute;
+		width: 329px;
+		height: 1px;
+		top: 63px;
+		left: 0;
+	}</style>
+	<style data-emotion="css" data-s="">.css-flxy5n {
+		position: absolute;
+		width: 1px;
+		height: 99px;
+		top: 0;
+		left: 47px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-11l4ylf {
+		position: absolute;
+		width: 1px;
+		height: 99px;
+		top: 0;
+		left: 95px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1l52i1a {
+		position: absolute;
+		width: 1px;
+		height: 99px;
+		top: 0;
+		left: 143px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-77p3xd {
+		position: absolute;
+		width: 1px;
+		height: 99px;
+		top: 0;
+		left: 191px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1k3edq5 {
+		position: absolute;
+		width: 1px;
+		height: 99px;
+		top: 0;
+		left: 239px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1fvtlqb {
+		position: absolute;
+		width: 1px;
+		height: 99px;
+		top: 0;
+		left: 287px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-rm0xgj {
+		position: absolute;
+		width: 329px;
+		height: 99px;
+		top: 0;
+		left: 0;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-pack: justify;
+		-webkit-justify-content: space-between;
+		justify-content: space-between;
+		-webkit-align-items: flex-end;
+		-webkit-box-align: flex-end;
+		-ms-flex-align: flex-end;
+		align-items: flex-end;
+		padding: 0 20px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-dxn453 {
+		width: 6px;
+		height: 67px;
+		background-color: white;
+		border-radius: 3px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1tcyjze {
+		width: 6px;
+		height: 84px;
+		background-color: white;
+		border-radius: 3px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1whysy {
+		width: 6px;
+		height: 34px;
+		background-color: white;
+		border-radius: 3px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-v5kg5j {
+		width: 6px;
+		height: 82px;
+		background-color: white;
+		border-radius: 3px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-u522xx {
+		max-width: 410px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-u522xx {
+			position: relative;
+			width: 100%;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-u522xx {
+			width: 410px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-u522xx {
+			position: absolute;
+			top: 282px;
+			left: 727px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-1pxui1q {
+		position: absolute;
+		top: 251px;
+		left: 23px;
+		font-family: Roboto, Helvetica;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: 19.6px;
+		white-space: nowrap;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1p1dgea {
+		color: var(--lineargrey);
+		font-weight: 400;
+	}</style>
+	<style data-emotion="css" data-s="">.css-cikbb6 {
+		color: var(--lineargreen);
+		font-weight: 700;
+	}</style>
+	<style data-emotion="css" data-s="">.css-7taf0w {
+		position: absolute;
+		width: 378px;
+		height: 202px;
+		top: 0;
+		left: 16px;
+		border-radius: 8px;
+		box-shadow: var(--drop-shadow-green);
+		background: linear-gradient(180deg, rgba(99, 185, 103, 1) 0%, rgba(75, 166, 79, 1) 100%);
+	}</style>
+	<style data-emotion="css" data-s="">.css-wjtfu2 {
+		position: relative;
+		height: 116px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-pq1dmg {
+		position: absolute;
+		width: 304px;
+		height: 98px;
+		top: 10px;
+		left: 35px;
+		object-fit: cover;
+	}</style>
+	<style data-emotion="css" data-s="">.css-15lsssj {
+		position: absolute;
+		width: 322px;
+		height: 88px;
+		top: 20px;
+		left: 29px;
+		object-fit: cover;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1wh413l {
+		position: absolute;
+		height: 116px;
+		top: 0;
+		left: 0;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1mccjsk-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		position: absolute;
+		top: 96px;
+		left: 0;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+	}</style>
+	<style data-emotion="css" data-s="">.css-jzj36 {
+		position: absolute;
+		width: 350px;
+		height: 20px;
+		top: 121px;
+		left: 6px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-pack: justify;
+		-webkit-justify-content: space-between;
+		justify-content: space-between;
+	}</style>
+	<style data-emotion="css" data-s="">.css-e7pzwk-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: white;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		opacity: 0.5;
+	}</style>
+	<style data-emotion="css" data-s="">.css-z0grmt {
+		max-width: 410px;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-z0grmt {
+			position: relative;
+			width: 100%;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 600px) {
+		.css-z0grmt {
+			width: 410px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-z0grmt {
+			position: absolute;
+			top: 282px;
+			left: 1157px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-1m9ptre-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		position: absolute;
+		top: 251px;
+		left: 23px;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: 19.6px;
+		white-space: nowrap;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1a25yn2 {
+		position: absolute;
+		width: 378px;
+		height: 202px;
+		top: 0;
+		left: 16px;
+		border-radius: 8px;
+		background: linear-gradient(180deg, rgba(62, 61, 69, 1) 0%, rgba(32, 32, 32, 1) 100%);
+	}</style>
+	<style data-emotion="css" data-s="">.css-1idw0ad {
+		position: absolute;
+		width: 322px;
+		height: 88px;
+		top: 20px;
+		left: 29px;
+		background: linear-gradient(180deg, rgba(233, 31, 99, 0.6) 0%, rgba(233, 31, 99, 0.2) 100%);
+		border-radius: 4px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-m17o69 {
+		overflow-x: auto;
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-m17o69 {
+			position: relative;
+			width: 100%;
+			padding: 20px;
+			margin-top: 20px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-m17o69 {
+			position: absolute;
+			top: 649px;
+			left: 297px;
+			width: 1270px;
+			padding: 0px;
+			margin-top: 0px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-10kxi9l {
+		width: 1270px;
+		height: 467px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-2xuqd8 {
+		position: relative;
+		height: 467px;
+		background-color: var(--linearwhite);
+		border-radius: 8px;
+		box-shadow: var(--drop-shadow-black);
+	}</style>
+	<style data-emotion="css" data-s="">.css-1lx3x5a-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineardark-blue);
+		position: absolute;
+		top: 24px;
+		left: 24px;
+		font-family: Roboto, Helvetica;
+		font-weight: 700;
+		font-size: 16px;
+		letter-spacing: 0;
+		line-height: 22.4px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1ddukre {
+		position: absolute;
+		width: 1222px;
+		height: 380px;
+		top: 64px;
+		left: 24px;
+		overflow: hidden;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1o8edh1 {
+		position: absolute;
+		width: 1222px;
+		height: 1px;
+		top: 76px;
+		left: 0;
+	}</style>
+	<style data-emotion="css" data-s="">.css-12vxdb2 {
+		position: absolute;
+		width: 1222px;
+		height: 1px;
+		top: 152px;
+		left: 0;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1fge3km {
+		position: absolute;
+		width: 1222px;
+		height: 1px;
+		top: 228px;
+		left: 0;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1xwkyup {
+		position: absolute;
+		width: 1222px;
+		height: 1px;
+		top: 304px;
+		left: 0;
+	}</style>
+	<style data-emotion="css" data-s="">.css-h73c05 {
+		position: absolute;
+		width: 1222px;
+		height: 1px;
+		top: 380px;
+		left: 0;
+	}</style>
+	<style data-emotion="css" data-s="">.css-dg4mtp {
+		position: absolute;
+		width: 1222px;
+		height: 380px;
+		top: 0;
+		left: 0;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1v8tjui {
+		position: absolute;
+		width: 1222px;
+		height: 76px;
+		top: 304px;
+		left: 0;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1gks83y-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineardark-blue);
+		width: 200px;
+		font-family: Roboto, Helvetica;
+		font-weight: 700;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: 19.6px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		padding-left: 16px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-13pmxen {
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1aymyky-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: 19.6px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		-webkit-box-pack: start;
+		-ms-flex-pack: start;
+		-webkit-justify-content: flex-start;
+		justify-content: flex-start;
+		padding-left: 16px;
+		padding-right: 0px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-zb6oko-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+		font-family: Roboto, Helvetica;
+		font-weight: 400;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: 19.6px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		-webkit-box-pack: end;
+		-ms-flex-pack: end;
+		-webkit-justify-content: flex-end;
+		justify-content: flex-end;
+		padding-left: 0px;
+		padding-right: 16px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1n7ke1r {
+		position: absolute;
+		width: 1222px;
+		height: 76px;
+		top: 228px;
+		left: 0;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1fpyoip {
+		position: absolute;
+		width: 1222px;
+		height: 76px;
+		top: 152px;
+		left: 0;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1uieb4l {
+		position: absolute;
+		width: 1222px;
+		height: 76px;
+		top: 76px;
+		left: 0;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+	}</style>
+	<style data-emotion="css" data-s="">.css-wp7kdk {
+		position: absolute;
+		width: 1222px;
+		height: 76px;
+		top: 0;
+		left: 0;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+	}</style>
+	<style data-emotion="css" data-s="">.css-vud2h1 {
+		position: absolute;
+		width: 1222px;
+		height: 40px;
+		top: 24px;
+		left: 24px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1vh2g7y-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		width: 200px;
+		font-family: Roboto, Helvetica;
+		font-weight: 700;
+		font-size: 10px;
+		letter-spacing: 0;
+		line-height: 14px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		padding-left: 16px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1u380u-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+		font-family: Roboto, Helvetica;
+		font-weight: 700;
+		font-size: 10px;
+		letter-spacing: 0;
+		line-height: 14px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		-webkit-box-pack: start;
+		-ms-flex-pack: start;
+		-webkit-justify-content: flex-start;
+		justify-content: flex-start;
+		padding-left: 16px;
+		padding-right: 0px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-n2n4l4-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+		font-family: Roboto, Helvetica;
+		font-weight: 700;
+		font-size: 10px;
+		letter-spacing: 0;
+		line-height: 14px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+		-webkit-box-pack: end;
+		-ms-flex-pack: end;
+		-webkit-justify-content: flex-end;
+		justify-content: flex-end;
+		padding-left: 0px;
+		padding-right: 16px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-5ezj8l {
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 0px) {
+		.css-5ezj8l {
+			position: relative;
+			width: 100%;
+			padding: 20px;
+			margin-top: 20px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">@media (min-width: 900px) {
+		.css-5ezj8l {
+			position: absolute;
+			bottom: 20px;
+			left: 297px;
+			width: 1270px;
+			padding: 0px;
+			margin-top: 0px;
+		}
+	}</style>
+	<style data-emotion="css" data-s="">.css-12ec7s9 {
+		position: relative;
+		width: 1270px;
+		height: 24px;
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-pack: justify;
+		-webkit-justify-content: space-between;
+		justify-content: space-between;
+		-webkit-align-items: center;
+		-webkit-box-align: center;
+		-ms-flex-align: center;
+		align-items: center;
+	}</style>
+	<style data-emotion="css" data-s="">.css-9survw-MuiTypography-root {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		line-height: 1.4;
+		letter-spacing: 0px;
+		font-family: Roboto, Helvetica, Arial, sans-serif;
+		color: var(--lineargrey);
+		font-family: Roboto, Helvetica;
+		font-size: 14px;
+		letter-spacing: 0;
+		line-height: 19.6px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-pelz90 {
+		font-weight: 400;
+	}</style>
+	<style data-emotion="css" data-s="">.css-1xv3jbn {
+		font-weight: 700;
+		color: var(--linearred);
+	}</style>
+	<style data-emotion="css" data-s="">.css-13t3iqc {
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		gap: 32px;
+	}</style>
+	<style data-emotion="css" data-s="">.css-pzxnsa {
+		width: 16px;
+		height: 16px;
+		cursor: pointer;
+	}</style>
+</head>
+<body>
+<div id="root">
+	<div class="dashboard MuiBox-root css-9t9i43">
+		<div class="div MuiBox-root css-vjdv83">
+			<div class="menu-main MuiBox-root css-aeb1u5">
+				<div class="logo MuiBox-root css-to5v0y">
+					<div class="novelike-white-nobg MuiBox-root css-unt23m"><img class="group-2 MuiBox-root css-1lxr1or"
+					                                                             alt="Logo"
+					                                                             src="https://c.animaapp.com/6S1yK5Ge/img/group@2x.png">
+					</div>
+					<h6 class="MuiTypography-root MuiTypography-subtitle2 text-wrapper-16 css-19gb9b2-MuiTypography-root">
+						자산 관리 시스템</h6></div>
+				<img class="line-2 MuiBox-root css-cnjyvd" src="https://c.animaapp.com/6S1yK5Ge/img/line-3.svg">
+				<div class="main-nav MuiBox-root css-1iknwoq">
+					<div class="menu-button-primary MuiBox-root css-1pex2xh">
+						<div class="icon-dashboard MuiBox-root css-1tc2gvj">
+							<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-ptiqhd-MuiSvgIcon-root"
+							     focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="DashboardIcon">
+								<path d="M3 13h8V3H3zm0 8h8v-6H3zm10 0h8V11h-8zm0-18v6h8V3z"></path>
+							</svg>
+						</div>
+						<p class="MuiTypography-root MuiTypography-body1 text-wrapper-17 css-15kbwkb-MuiTypography-root">
+							Dashboards</p><img class="icon-arrow-down MuiBox-root css-y9f28q"
+						                       src="https://c.animaapp.com/6S1yK5Ge/img/icon-8px-arrow-down.svg"></div>
+					<div class="menu-button MuiBox-root css-4ez8pb">
+						<div class="a MuiBox-root css-bferu4">U</div>
+						<p class="MuiTypography-root MuiTypography-body1 text-wrapper-17 css-15kbwkb-MuiTypography-root">
+							Upload</p></div>
+					<div class="menu-button-2 MuiBox-root css-wfmtut">
+						<div class="a MuiBox-root css-bferu4">L</div>
+						<p class="MuiTypography-root MuiTypography-body1 text-wrapper-17 css-15kbwkb-MuiTypography-root">
+							List</p></div>
+					<div class="menu-button-2 MuiBox-root css-wfmtut">
+						<div class="a MuiBox-root css-bferu4">D</div>
+						<p class="MuiTypography-root MuiTypography-body1 text-wrapper-17 css-15kbwkb-MuiTypography-root">
+							Detail List</p></div>
+					<div class="menu-button-2 MuiBox-root css-wfmtut">
+						<div class="a MuiBox-root css-bferu4">C</div>
+						<p class="MuiTypography-root MuiTypography-body1 text-wrapper-17 css-15kbwkb-MuiTypography-root">
+							Chat Bot</p></div>
+					<div class="menu-button-2 MuiBox-root css-wfmtut">
+						<div class="a MuiBox-root css-bferu4">L</div>
+						<p class="MuiTypography-root MuiTypography-body1 text-wrapper-17 css-15kbwkb-MuiTypography-root">
+							Label</p></div>
+				</div>
+			</div>
+			<div style="left: 297px;position: relative;">
+				<div class="menu-header MuiBox-root css-14en1f1" style="
+    margin-bottom: 56px;
+">
+					<div class="overlap-3 MuiBox-root css-j7qwjs"><h6
+							class="MuiTypography-root MuiTypography-h6 profile-overview css-f3phwi-MuiTypography-root">
+						Dashboard</h6>
+						<div class="breadcrumbs MuiBox-root css-axw7ok"><img class="icon-home MuiBox-root css-3o0h5k"
+						                                                     src="https://c.animaapp.com/6S1yK5Ge/img/icon-16px-home-breadcrumbs.svg">
+							<p class="MuiTypography-root MuiTypography-body2 text-wrapper-21 css-1xj4kcx-MuiTypography-root">
+								/</p>
+							<p class="MuiTypography-root MuiTypography-body2 profile-overview-2 css-emimvw-MuiTypography-root">
+								Dashboard</p></div>
+					</div>
+					<div class="MuiBox-root css-j0ozid">
+						<div class="icon-settings MuiBox-root css-12bcj28"></div>
+						<div class="overlap-4 MuiBox-root css-79elbk"><img class="icon MuiBox-root css-3o0h5k"
+						                                                   src="https://c.animaapp.com/6S1yK5Ge/img/icon-16px-notification.svg">
+							<div class="item-wrapper MuiBox-root css-1s9nndm">
+								<div class="item MuiBox-root css-zj48vm">11</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="MuiBox-root css-1fsggnv" style="
+    margin-bottom: 24px;
+">
+					<div class="card-report MuiBox-root css-w3u3z6">
+						<div class="MuiBox-root css-11v1dr5">
+							<div class="MuiBox-root css-xjgjb1"></div>
+							<div class="MuiBox-root css-14ro7fu">
+								<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root"
+								     focusable="false" aria-hidden="true" viewBox="0 0 24 24"
+								     data-testid="ViewInArIcon">
+									<path d="m18.25 7.6-5.5-3.18c-.46-.27-1.04-.27-1.5 0L5.75 7.6c-.46.27-.75.76-.75 1.3v6.35c0 .54.29 1.03.75 1.3l5.5 3.18c.46.27 1.04.27 1.5 0l5.5-3.18c.46-.27.75-.76.75-1.3V8.9c0-.54-.29-1.03-.75-1.3M7 14.96v-4.62l4 2.32v4.61zm5-4.03L8 8.61l4-2.31 4 2.31zm1 6.34v-4.61l4-2.32v4.62zM7 2H3.5C2.67 2 2 2.67 2 3.5V7h2V4h3zm10 0h3.5c.83 0 1.5.67 1.5 1.5V7h-2V4h-3zM7 22H3.5c-.83 0-1.5-.67-1.5-1.5V17h2v3h3zm10 0h3.5c.83 0 1.5-.67 1.5-1.5V17h-2v3h-3z"></path>
+								</svg>
+							</div>
+							<p class="MuiTypography-root MuiTypography-body1 css-r5h87n-MuiTypography-root">총 자산</p>
+							<p class="MuiTypography-root MuiTypography-body1 css-182m1i7-MuiTypography-root">281</p><img
+								class="MuiBox-root css-1orpcy1" src="https://c.animaapp.com/6S1yK5Ge/img/line-6.svg">
+							<p class="MuiTypography-root MuiTypography-body1 css-1akmsmo-MuiTypography-root"><span
+									class="MuiBox-root css-1y4nmri">+10%</span> <span class="MuiBox-root css-1m708gl">전월 대비 증가</span>
+							</p></div>
+					</div>
+					<div class="div-wrapper MuiBox-root css-1rba6c6">
+						<div class="MuiBox-root css-11v1dr5">
+							<div class="MuiBox-root css-xjgjb1"></div>
+							<div class="MuiBox-root css-19ge24a">
+								<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root"
+								     focusable="false" aria-hidden="true" viewBox="0 0 24 24"
+								     data-testid="BarChartIcon">
+									<path d="M4 9h4v11H4zm12 4h4v7h-4zm-6-9h4v16h-4z"></path>
+								</svg>
+							</div>
+							<p class="MuiTypography-root MuiTypography-body1 css-r5h87n-MuiTypography-root">신규 등록</p>
+							<p class="MuiTypography-root MuiTypography-body1 css-182m1i7-MuiTypography-root">21</p><img
+								class="MuiBox-root css-1orpcy1" src="https://c.animaapp.com/6S1yK5Ge/img/line-6.svg">
+							<p class="MuiTypography-root MuiTypography-body1 css-1akmsmo-MuiTypography-root"><span
+									class="MuiBox-root css-1y4nmri">+5%</span> <span class="MuiBox-root css-1m708gl">than last week</span>
+							</p></div>
+					</div>
+					<div class="card-report-2 MuiBox-root css-gs83td">
+						<div class="MuiBox-root css-11v1dr5">
+							<div class="MuiBox-root css-xjgjb1"></div>
+							<div class="MuiBox-root css-choogj">
+								<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root"
+								     focusable="false" aria-hidden="true" viewBox="0 0 24 24"
+								     data-testid="AccountCircleIcon">
+									<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6m0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20"></path>
+								</svg>
+							</div>
+							<p class="MuiTypography-root MuiTypography-body1 css-r5h87n-MuiTypography-root">사용자</p>
+							<p class="MuiTypography-root MuiTypography-body1 css-182m1i7-MuiTypography-root">85</p><img
+								class="MuiBox-root css-1orpcy1" src="https://c.animaapp.com/6S1yK5Ge/img/line-6.svg">
+							<p class="MuiTypography-root MuiTypography-body1 css-dyeeg1-MuiTypography-root">업데이트됨</p>
+						</div>
+					</div>
+				</div>
+				<div class="MuiBox-root css-1jqwjxs" style="
+    margin-bottom: 24px;
+">
+					<div class="MuiBox-root css-1wpw8of">
+						<div class="card-website-views MuiBox-root css-68wnrc">
+							<div class="overlap MuiBox-root css-r1m718">
+								<div class="rectangle MuiBox-root css-1q7ye6x"></div>
+								<p class="MuiTypography-root MuiTypography-body1 title css-1bt2k3j-MuiTypography-root">
+									기기 종류별 총 대수</p>
+								<p class="MuiTypography-root MuiTypography-body1 status css-1yja4ui-MuiTypography-root">
+									campaign sent 2 days ago</p><img class="icon-clock MuiBox-root css-4bo847"
+								                                     src="https://c.animaapp.com/6S1yK5Ge/img/icon-12px-clock-outline-2.svg"><img
+									class="line MuiBox-root css-1hi012y"
+									src="https://c.animaapp.com/6S1yK5Ge/img/line-2.svg">
+								<div class="bg-graph MuiBox-root css-c4gbaz"></div>
+								<div class="div-2 MuiBox-root css-3py7a8">
+									<div class="overlap-group MuiBox-root css-1ndiufr">
+										<div class="numbers MuiBox-root css-12hpeby"><p
+												class="MuiTypography-root MuiTypography-body1 text-wrapper css-fi5x0o-MuiTypography-root">
+											60</p>
+											<p class="MuiTypography-root MuiTypography-body1 text-wrapper-2 css-1bndwwe-MuiTypography-root">
+												40</p>
+											<p class="MuiTypography-root MuiTypography-body1 text-wrapper-3 css-131p94r-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 text-wrapper-4 css-1v7a0ai-MuiTypography-root">
+												0</p>
+											<p class="MuiTypography-root MuiTypography-body1 m css-il3d1y-MuiTypography-root">
+												노트북</p>
+											<p class="MuiTypography-root MuiTypography-body1 t css-1shtz8w-MuiTypography-root">
+												키보드</p>
+											<p class="MuiTypography-root MuiTypography-body1 w css-q12elf-MuiTypography-root">
+												마우스</p>
+											<p class="MuiTypography-root MuiTypography-body1 t-2 css-1vrzc3g-MuiTypography-root">
+												패드</p>
+											<p class="MuiTypography-root MuiTypography-body1 f css-1wpkjwq-MuiTypography-root">
+												가방</p>
+											<p class="MuiTypography-root MuiTypography-body1 s css-1wbywx6-MuiTypography-root">
+												데스크탑</p>
+											<p class="MuiTypography-root MuiTypography-body1 s-2 css-1at3won-MuiTypography-root">
+												모니터</p></div>
+										<div class="frame MuiBox-root css-3hx87x">
+											<div class="background MuiBox-root css-1kmspwp">
+												<div class="overlap-group-2 MuiBox-root css-1usr7bi"><img
+														class="vector MuiBox-root css-c7i9qf"
+														src="https://c.animaapp.com/6S1yK5Ge/img/vector-15.svg"><img
+														class="img MuiBox-root css-1w6ba4q"
+														src="https://c.animaapp.com/6S1yK5Ge/img/vector-16.svg"><img
+														class="vector-2 MuiBox-root css-flxy5n"
+														src="https://c.animaapp.com/6S1yK5Ge/img/vector-22.svg"><img
+														class="vector-3 MuiBox-root css-11l4ylf"
+														src="https://c.animaapp.com/6S1yK5Ge/img/vector-22.svg"><img
+														class="vector-4 MuiBox-root css-1l52i1a"
+														src="https://c.animaapp.com/6S1yK5Ge/img/vector-22.svg"><img
+														class="vector-5 MuiBox-root css-77p3xd"
+														src="https://c.animaapp.com/6S1yK5Ge/img/vector-22.svg"><img
+														class="vector-6 MuiBox-root css-1k3edq5"
+														src="https://c.animaapp.com/6S1yK5Ge/img/vector-22.svg"><img
+														class="vector-7 MuiBox-root css-1fvtlqb"
+														src="https://c.animaapp.com/6S1yK5Ge/img/vector-22.svg"></div>
+											</div>
+											<div class="bars MuiBox-root css-rm0xgj">
+												<div class="bar MuiBox-root css-dxn453"></div>
+												<div class="bar-2 MuiBox-root css-1tcyjze"></div>
+												<div class="bar-2 MuiBox-root css-1tcyjze"></div>
+												<div class="bar-2 MuiBox-root css-1tcyjze"></div>
+												<div class="bar MuiBox-root css-dxn453"></div>
+												<div class="bar-3 MuiBox-root css-1whysy"></div>
+												<div class="bar-4 MuiBox-root css-v5kg5j"></div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="MuiBox-root css-u522xx">
+						<div class="overlap-wrapper MuiBox-root css-68wnrc">
+							<div class="overlap MuiBox-root css-r1m718">
+								<div class="rectangle MuiBox-root css-1q7ye6x"></div>
+								<p class="MuiTypography-root MuiTypography-body1 title css-1bt2k3j-MuiTypography-root">
+									여유 기기 변동 추이</p>
+								<div class="description MuiBox-root css-1pxui1q"><span
+										class="span MuiBox-root css-1p1dgea">(</span><span
+										class="text-wrapper-5 MuiBox-root css-cikbb6">+15%</span><span
+										class="span MuiBox-root css-1p1dgea">) 전월 대비 증가</span></div>
+								<p class="MuiTypography-root MuiTypography-body1 status css-1yja4ui-MuiTypography-root">
+									updated 4 min ago</p><img class="icon-clock MuiBox-root css-4bo847"
+								                              src="https://c.animaapp.com/6S1yK5Ge/img/icon-12px-clock-outline-2.svg"><img
+									class="line MuiBox-root css-1hi012y"
+									src="https://c.animaapp.com/6S1yK5Ge/img/line-2.svg">
+								<div class="bg-graph-2 MuiBox-root css-7taf0w"></div>
+								<div class="div-2 MuiBox-root css-3py7a8">
+									<div class="overlap-group-3 MuiBox-root css-wjtfu2"><img
+											class="lines MuiBox-root css-pq1dmg"
+											src="https://c.animaapp.com/6S1yK5Ge/img/lines-1@2x.png"><img
+											class="group MuiBox-root css-15lsssj"
+											src="https://c.animaapp.com/6S1yK5Ge/img/group-11-1@2x.png">
+										<div class="numbers-2 MuiBox-root css-1wh413l"><p
+												class="MuiTypography-root MuiTypography-body1 text-wrapper css-fi5x0o-MuiTypography-root">
+											150</p>
+											<p class="MuiTypography-root MuiTypography-body1 text-wrapper-2 css-1bndwwe-MuiTypography-root">
+												100</p>
+											<p class="MuiTypography-root MuiTypography-body1 element css-131p94r-MuiTypography-root">
+												50</p>
+											<p class="MuiTypography-root MuiTypography-body1 text-wrapper-6 css-1mccjsk-MuiTypography-root">
+												0</p></div>
+									</div>
+									<div class="navbar MuiBox-root css-jzj36"><p
+											class="MuiTypography-root MuiTypography-body1 text-wrapper-7 css-e7pzwk-MuiTypography-root">
+										Apr</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-8 css-e7pzwk-MuiTypography-root">
+											May</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-9 css-e7pzwk-MuiTypography-root">
+											Jun</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-10 css-e7pzwk-MuiTypography-root">
+											Jul</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-11 css-e7pzwk-MuiTypography-root">
+											Aug</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-12 css-e7pzwk-MuiTypography-root">
+											Sep</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-13 css-e7pzwk-MuiTypography-root">
+											Oct</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-14 css-e7pzwk-MuiTypography-root">
+											Nov</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-15 css-e7pzwk-MuiTypography-root">
+											Dec</p></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="MuiBox-root css-z0grmt">
+						<div class="overlap-group-wrapper MuiBox-root css-68wnrc">
+							<div class="overlap MuiBox-root css-r1m718">
+								<div class="rectangle MuiBox-root css-1q7ye6x"></div>
+								<p class="MuiTypography-root MuiTypography-body1 title css-1bt2k3j-MuiTypography-root">
+									할당된 기기 변동 추이</p>
+								<p class="MuiTypography-root MuiTypography-body1 description css-1m9ptre-MuiTypography-root">
+									Last Campaign Performance</p>
+								<p class="MuiTypography-root MuiTypography-body1 status css-1yja4ui-MuiTypography-root">
+									just updated</p><img class="icon-clock MuiBox-root css-4bo847"
+								                         src="https://c.animaapp.com/6S1yK5Ge/img/icon-12px-clock-outline-2.svg"><img
+									class="line MuiBox-root css-1hi012y"
+									src="https://c.animaapp.com/6S1yK5Ge/img/line-2.svg">
+								<div class="bg-graph-3 MuiBox-root css-1a25yn2"></div>
+								<div class="div-2 MuiBox-root css-3py7a8">
+									<div class="overlap-group-3 MuiBox-root css-wjtfu2"><img
+											class="lines MuiBox-root css-pq1dmg"
+											src="https://c.animaapp.com/6S1yK5Ge/img/lines-1@2x.png">
+										<div class="MuiBox-root css-1idw0ad"></div>
+										<div class="numbers-2 MuiBox-root css-1wh413l"><p
+												class="MuiTypography-root MuiTypography-body1 text-wrapper css-fi5x0o-MuiTypography-root">
+											600</p>
+											<p class="MuiTypography-root MuiTypography-body1 text-wrapper-2 css-1bndwwe-MuiTypography-root">
+												400</p>
+											<p class="MuiTypography-root MuiTypography-body1 text-wrapper-3 css-131p94r-MuiTypography-root">
+												200</p>
+											<p class="MuiTypography-root MuiTypography-body1 text-wrapper-6 css-1mccjsk-MuiTypography-root">
+												0</p></div>
+									</div>
+									<div class="navbar MuiBox-root css-jzj36"><p
+											class="MuiTypography-root MuiTypography-body1 text-wrapper-7 css-e7pzwk-MuiTypography-root">
+										Apr</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-8 css-e7pzwk-MuiTypography-root">
+											May</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-9 css-e7pzwk-MuiTypography-root">
+											Jun</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-10 css-e7pzwk-MuiTypography-root">
+											Jul</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-11 css-e7pzwk-MuiTypography-root">
+											Aug</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-12 css-e7pzwk-MuiTypography-root">
+											Sep</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-13 css-e7pzwk-MuiTypography-root">
+											Oct</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-14 css-e7pzwk-MuiTypography-root">
+											Nov</p>
+										<p class="MuiTypography-root MuiTypography-body1 text-wrapper-15 css-e7pzwk-MuiTypography-root">
+											Dec</p></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="MuiBox-root css-m17o69">
+					<div class="section MuiBox-root css-10kxi9l">
+						<div class="overlap-5 MuiBox-root css-2xuqd8"><p
+								class="MuiTypography-root MuiTypography-body1 text-wrapper-22 css-1lx3x5a-MuiTypography-root">
+							사이트별 자산 현황</p>
+							<div class="overlap-group-4 MuiBox-root css-1ddukre"><img
+									class="line-4 MuiBox-root css-1o8edh1"
+									src="https://c.animaapp.com/6S1yK5Ge/img/line-11.svg"><img
+									class="line-5 MuiBox-root css-12vxdb2"
+									src="https://c.animaapp.com/6S1yK5Ge/img/line-11.svg"><img
+									class="line-6 MuiBox-root css-1fge3km"
+									src="https://c.animaapp.com/6S1yK5Ge/img/line-11.svg"><img
+									class="line-7 MuiBox-root css-1xwkyup"
+									src="https://c.animaapp.com/6S1yK5Ge/img/line-11.svg"><img
+									class="line-8 MuiBox-root css-h73c05"
+									src="https://c.animaapp.com/6S1yK5Ge/img/line-11.svg">
+								<div class="table-row MuiBox-root css-dg4mtp">
+									<div class="row MuiBox-root css-1v8tjui"><p
+											class="MuiTypography-root MuiTypography-body1 SITE css-1gks83y-MuiTypography-root">
+										역삼 GS 타워</p>
+										<div class="values MuiBox-root css-13pmxen"><p
+												class="MuiTypography-root MuiTypography-body1 value-3 css-1aymyky-MuiTypography-root">
+											32</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-4 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-5 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-6 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-7 css-1aymyky-MuiTypography-root">
+												32</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-8 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-9 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-10 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-11 css-zb6oko-MuiTypography-root">
+												20</p></div>
+									</div>
+									<div class="row-2 MuiBox-root css-1n7ke1r"><p
+											class="MuiTypography-root MuiTypography-body1 SITE css-1gks83y-MuiTypography-root">
+										마곡 LG Science Park</p>
+										<div class="values MuiBox-root css-13pmxen"><p
+												class="MuiTypography-root MuiTypography-body1 value-3 css-1aymyky-MuiTypography-root">
+											32</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-4 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-5 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-6 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-7 css-1aymyky-MuiTypography-root">
+												32</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-8 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-9 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-10 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-11 css-zb6oko-MuiTypography-root">
+												20</p></div>
+									</div>
+									<div class="row-3 MuiBox-root css-1fpyoip"><p
+											class="MuiTypography-root MuiTypography-body1 SITE css-1gks83y-MuiTypography-root">
+										압구정 LF</p>
+										<div class="values MuiBox-root css-13pmxen"><p
+												class="MuiTypography-root MuiTypography-body1 value-3 css-1aymyky-MuiTypography-root">
+											32</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-4 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-5 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-6 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-7 css-1aymyky-MuiTypography-root">
+												32</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-8 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-9 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-10 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-11 css-zb6oko-MuiTypography-root">
+												20</p></div>
+									</div>
+									<div class="row-4 MuiBox-root css-1uieb4l"><p
+											class="MuiTypography-root MuiTypography-body1 SITE css-1gks83y-MuiTypography-root">
+										고양 지사</p>
+										<div class="values MuiBox-root css-13pmxen"><p
+												class="MuiTypography-root MuiTypography-body1 value-3 css-1aymyky-MuiTypography-root">
+											32</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-4 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-5 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-6 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-7 css-1aymyky-MuiTypography-root">
+												32</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-8 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-9 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-10 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-11 css-zb6oko-MuiTypography-root">
+												20</p></div>
+									</div>
+									<div class="row-5 MuiBox-root css-wp7kdk"><p
+											class="MuiTypography-root MuiTypography-body1 SITE css-1gks83y-MuiTypography-root">
+										판교 본사</p>
+										<div class="values MuiBox-root css-13pmxen"><p
+												class="MuiTypography-root MuiTypography-body1 value-3 css-1aymyky-MuiTypography-root">
+											32</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-4 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-5 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-6 css-1aymyky-MuiTypography-root">
+												38</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-7 css-1aymyky-MuiTypography-root">
+												32</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-8 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-9 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-10 css-zb6oko-MuiTypography-root">
+												20</p>
+											<p class="MuiTypography-root MuiTypography-body1 value-11 css-zb6oko-MuiTypography-root">
+												20</p></div>
+									</div>
+								</div>
+							</div>
+							<div class="table-header MuiBox-root css-vud2h1"><p
+									class="MuiTypography-root MuiTypography-body1 text-wrapper-31 css-1vh2g7y-MuiTypography-root">
+								SITE</p>
+								<div class="column-name MuiBox-root css-13pmxen"><p
+										class="MuiTypography-root MuiTypography-body1 text-wrapper-31 css-1u380u-MuiTypography-root">
+									노트북</p>
+									<p class="MuiTypography-root MuiTypography-body1 text-wrapper-30 css-1u380u-MuiTypography-root">
+										키보드</p>
+									<p class="MuiTypography-root MuiTypography-body1 text-wrapper-29 css-1u380u-MuiTypography-root">
+										마우스</p>
+									<p class="MuiTypography-root MuiTypography-body1 text-wrapper-28 css-1u380u-MuiTypography-root">
+										패드</p>
+									<p class="MuiTypography-root MuiTypography-body1 text-wrapper-27 css-1u380u-MuiTypography-root">
+										가방</p>
+									<p class="MuiTypography-root MuiTypography-body1 text-wrapper-26 css-n2n4l4-MuiTypography-root">
+										데스크탑</p>
+									<p class="MuiTypography-root MuiTypography-body1 text-wrapper-25 css-n2n4l4-MuiTypography-root">
+										모니터</p>
+									<p class="MuiTypography-root MuiTypography-body1 text-wrapper-24 css-n2n4l4-MuiTypography-root">
+										TOTAL</p>
+									<p class="MuiTypography-root MuiTypography-body1 text-wrapper-23 css-n2n4l4-MuiTypography-root">
+										금액</p></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="MuiBox-root css-5ezj8l">
+					<div class="footer-primary MuiBox-root css-12ec7s9"><p
+							class="MuiTypography-root MuiTypography-body1 element-made-with-by css-9survw-MuiTypography-root">
+						<span class="span MuiBox-root css-pelz90">© 2025, made with ♥ by </span><span
+							class="text-wrapper-5 MuiBox-root css-1xv3jbn">JaeHyun Kim</span><span
+							class="span MuiBox-root css-pelz90"> for a study.</span></p>
+						<div class="side-links MuiBox-root css-13t3iqc"><img class="email MuiBox-root css-pzxnsa"
+						                                                     src="https://c.animaapp.com/6S1yK5Ge/img/email.svg"><img
+								class="velog MuiBox-root css-pzxnsa"
+								src="https://c.animaapp.com/6S1yK5Ge/img/velog.svg"><img
+								class="notion MuiBox-root css-pzxnsa"
+								src="https://c.animaapp.com/6S1yK5Ge/img/notion.svg"><img
+								class="git-hub MuiBox-root css-pzxnsa"
+								src="https://c.animaapp.com/6S1yK5Ge/img/github.svg"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="module" src="/src/main.jsx?t=1750227074736"></script>
+
+
+</body>
+</html>

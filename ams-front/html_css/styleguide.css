@@ -1,0 +1,25 @@
+:root {
+	--lineardark-blue: rgba(52, 71, 103, 1);
+	--lineargrey: rgba(123, 128, 154, 1);
+	--linearlight-grey: rgba(168, 184, 216, 1);
+	--linearblue: rgba(26, 115, 231, 1);
+	--linearlight-blue: rgba(22, 192, 232, 1);
+	--linearred: rgba(233, 31, 99, 1);
+	--linearred-orange: rgba(244, 67, 52, 1);
+	--linearorange: rgba(251, 140, 0, 1);
+	--lineargreen: rgba(76, 175, 80, 1);
+	--linearlight-green: rgba(188, 225, 190, 1);
+	--linearwhite: rgba(255, 255, 255, 1);
+	--linearcloud: rgba(248, 249, 250, 1);
+	--linearbackground: rgba(240, 242, 245, 1);
+	--linearsnow: rgba(233, 234, 237, 1);
+	--linearmedium-grey: rgba(222, 226, 232, 1);
+	--lineardark-snow: rgba(199, 204, 208, 1);
+	--lineardark-mud: rgba(79, 79, 82, 1);
+	--lineardark-black: rgba(25, 25, 25, 1);
+	--drop-shadow-black: 0px 2px 6px 0px rgba(0, 0, 0, 0.25);
+	--drop-shadow-green: 0px 2px 6px 0px rgba(79, 169, 83, 0.36);
+	--drop-shadow-red: 0px 2px 6px 0px rgba(220, 34, 101, 0.36);
+	--drop-shadow-blue: 0px 2px 6px 0px rgba(40, 129, 235, 0.36);
+	--drop-shadow-grey: 0px 2px 6px 0px rgba(151, 172, 198, 0.25);
+}
