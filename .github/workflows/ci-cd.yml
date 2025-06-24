@@ -195,7 +195,7 @@ jobs:
         bandit -r app/ -f json -o bandit-report.json || true
         
     - name: Upload security scan results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: security-scan-results
         path: ams-back/bandit-report.json
@@ -382,7 +382,7 @@ jobs:
         k6 run deployment/performance/load_test.js
         
     - name: Upload performance results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: performance-test-results
         path: performance-results.json
@@ -433,7 +433,7 @@ jobs:
         python deployment/generate_report.py --format=html --output=deployment-report.html
         
     - name: Upload deployment report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: deployment-report
         path: deployment-report.html
