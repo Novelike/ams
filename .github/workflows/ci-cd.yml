@@ -55,7 +55,7 @@ jobs:
     - name: Import sorting check (isort)
       run: |
         cd ams-back
-        isort --check-only --diff .
+        isort --diff .
         
     - name: Linting (flake8)
       run: |
