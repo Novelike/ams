@@ -187,7 +187,7 @@ jobs:
     - name: Check for known security vulnerabilities
       run: |
         cd ams-back
-        safety check -r requirements.txt
+        safety scan -r requirements.txt
         
     - name: Run bandit security linter
       run: |
