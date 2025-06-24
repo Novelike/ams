@@ -37,6 +37,23 @@ import novelike.seg as segmod
 import novelike.ocr as ocrmod
 import novelike.chatbot as chatmod  # 예: chatmod.suggest_specs()
 
+# 새로운 서비스 임포트
+from app.services.enhanced_asset_matcher import EnhancedAssetMatcher, AssetMatcherConfig
+from app.services.fuzzy_matcher import FuzzyMatcher
+from app.services.confidence_evaluator import ConfidenceEvaluator, ConfidenceThresholds
+# Phase 2 서비스 임포트
+from app.services.confidence_ml import ConfidenceMLModel, FeedbackData
+from app.services.dynamic_thresholds import DynamicThresholdManager, PerformanceMetrics
+# 새로 추가된 서비스 임포트
+from app.services.search_engine import get_search_engine
+from app.services.realtime_learning import get_learning_pipeline
+from app.services.ab_testing import get_ab_testing_framework
+from app.middleware.performance_monitor import get_performance_monitor
+# Phase 3 GPU OCR 서비스 임포트
+from app.services.gpu_manager import get_gpu_manager
+from app.services.batch_ocr_engine import get_batch_ocr_engine, BatchOCRRequest
+from app.services.ocr_scheduler import get_ocr_scheduler, OCRJobRequest
+
 router = APIRouter(
 	prefix="/api/registration",
 	tags=["registration"],
@@ -45,6 +62,42 @@ router = APIRouter(
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# 전역 서비스 인스턴스 초기화
+asset_matcher = None
+confidence_evaluator = None
+fuzzy_matcher = None
+
+async def initialize_services():
+    """서비스 인스턴스 초기화"""
+    global asset_matcher, confidence_evaluator, fuzzy_matcher
+
+    if asset_matcher is None:
+        registration_logger.info("자산 매칭 서비스 초기화 중...")
+        config = AssetMatcherConfig(
+            cache_ttl=3600,
+            max_workers=4,
+            enable_cache=True,
+            min_similarity_threshold=0.7
+        )
+        asset_matcher = EnhancedAssetMatcher(config)
+        await asset_matcher.initialize()
+
+    if confidence_evaluator is None:
+        registration_logger.info("신뢰도 평가 서비스 초기화 중...")
+        thresholds = ConfidenceThresholds(
+            high=0.85,
+            medium=0.65,
+            low=0.45,
+            very_low=0.25
+        )
+        confidence_evaluator = ConfidenceEvaluator(thresholds)
+
+    if fuzzy_matcher is None:
+        registration_logger.info("퍼지 매칭 서비스 초기화 중...")
+        fuzzy_matcher = FuzzyMatcher()
+
+    registration_logger.info("모든 검증 서비스 초기화 완료")
 
 
 @router.post("/upload", response_model=FileUploadResponse)
@@ -837,6 +890,973 @@ async def get_asset_detail(asset_number: str):
 		raise HTTPException(
 			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
 			detail=f"자산 상세 정보 조회 실패: {str(e)}"
+		)
+
+
+@router.post("/verify-single")
+async def verify_single_item(request: Dict[str, Any]):
+	"""
+	단일 OCR 항목 검증
+	"""
+	registration_logger.info("단일 항목 검증 요청 수신")
+
+	try:
+		# 서비스 초기화 확인
+		await initialize_services()
+
+		text = request.get('text', '')
+		category = request.get('category', 'other')
+		confidence = request.get('confidence', 0.0)
+
+		registration_logger.debug(f"검증 대상: {text} (카테고리: {category}, 신뢰도: {confidence})")
+
+		# OCR 데이터 구성
+		ocr_data = {
+			'text': text,
+			'confidence': confidence,
+			'category': category
+		}
+
+		# DB 검증 수행
+		verification_result = None
+		if text and category in ['model', 'serial', 'manufacturer']:
+			field_data = {f'{category}_name' if category == 'model' else 
+						 f'{category}_number' if category == 'serial' else category: text}
+			verification_result = await asset_matcher.verify_ocr_result_async(field_data)
+			verification_result = verification_result.get(f'{category}_name' if category == 'model' else 
+														f'{category}_number' if category == 'serial' else category)
+
+		# 신뢰도 평가
+		evaluation = confidence_evaluator.evaluate_ocr_result(ocr_data, verification_result)
+
+		# 자동완성 제안 생성
+		suggestions = []
+		if text and len(text) >= 2:
+			field_type = 'model_name' if category == 'model' else \
+						'serial_number' if category == 'serial' else category
+			suggestions = await asset_matcher.get_suggestions(field_type, text, limit=5)
+
+		return {
+			"verification": evaluation,
+			"suggestions": suggestions,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"단일 항목 검증 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"검증 실패: {str(e)}"
+		)
+
+
+@router.post("/verify-ocr")
+async def verify_ocr_batch(request: Dict[str, Any]):
+	"""
+	OCR 결과 일괄 검증
+	"""
+	registration_logger.info("OCR 일괄 검증 요청 수신")
+
+	try:
+		# 서비스 초기화 확인
+		await initialize_services()
+
+		ocr_data_list = request.get('ocr_data', [])
+		registration_logger.debug(f"검증할 항목 수: {len(ocr_data_list)}")
+
+		# 각 항목별 검증 수행
+		verification_results = {}
+		suggestions = {}
+
+		for item in ocr_data_list:
+			item_id = item.get('id', '')
+			text = item.get('text', '')
+			category = item.get('category', 'other')
+			confidence = item.get('confidence', 0.0)
+
+			# OCR 데이터 구성
+			ocr_data = {
+				'text': text,
+				'confidence': confidence,
+				'category': category
+			}
+
+			# DB 검증 수행
+			verification_result = None
+			if text and category in ['model', 'serial', 'manufacturer']:
+				field_data = {f'{category}_name' if category == 'model' else 
+							 f'{category}_number' if category == 'serial' else category: text}
+				db_result = await asset_matcher.verify_ocr_result_async(field_data)
+				verification_result = db_result.get(f'{category}_name' if category == 'model' else 
+													f'{category}_number' if category == 'serial' else category)
+
+			# 신뢰도 평가
+			evaluation = confidence_evaluator.evaluate_ocr_result(ocr_data, verification_result)
+			verification_results[item_id] = evaluation
+
+			# 자동완성 제안 생성
+			item_suggestions = []
+			if text and len(text) >= 2:
+				field_type = 'model_name' if category == 'model' else \
+							'serial_number' if category == 'serial' else category
+				item_suggestions = await asset_matcher.get_suggestions(field_type, text, limit=5)
+			suggestions[item_id] = item_suggestions
+
+		# 전체 통계 계산
+		batch_evaluation = confidence_evaluator.batch_evaluate(ocr_data_list, verification_results)
+
+		return {
+			"verification": verification_results,
+			"suggestions": suggestions,
+			"summary": batch_evaluation['summary'],
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"OCR 일괄 검증 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"일괄 검증 실패: {str(e)}"
+		)
+
+
+@router.get("/suggestions/{field_type}")
+async def get_suggestions(field_type: str, q: str = "", limit: int = 10):
+	"""
+	자동완성 제안 조회
+	"""
+	registration_logger.info(f"자동완성 제안 요청: {field_type}, 쿼리: {q}")
+
+	try:
+		# 서비스 초기화 확인
+		await initialize_services()
+
+		if not q or len(q) < 2:
+			return {"suggestions": [], "status": "success"}
+
+		# 자동완성 제안 생성
+		suggestions = await asset_matcher.get_suggestions(field_type, q, limit)
+
+		return {
+			"suggestions": suggestions,
+			"query": q,
+			"field_type": field_type,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"자동완성 제안 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"자동완성 조회 실패: {str(e)}"
+		)
+
+
+@router.get("/verification/stats")
+async def get_verification_stats():
+	"""
+	검증 시스템 통계 조회 (Phase 2: 확장)
+	"""
+	registration_logger.info("검증 시스템 통계 요청 수신")
+
+	try:
+		# 서비스 초기화 확인
+		await initialize_services()
+
+		# 각 서비스의 통계 수집
+		matcher_stats = asset_matcher.get_stats() if asset_matcher else {}
+		evaluator_stats = confidence_evaluator.get_stats() if confidence_evaluator else {}
+		fuzzy_stats = fuzzy_matcher.get_cache_stats() if fuzzy_matcher else {}
+
+		return {
+			"asset_matcher": matcher_stats,
+			"confidence_evaluator": evaluator_stats,
+			"fuzzy_matcher": fuzzy_stats,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"검증 시스템 통계 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"통계 조회 실패: {str(e)}"
+		)
+
+
+# Phase 2: 새로운 엔드포인트들 추가
+
+@router.post("/feedback/collect")
+async def collect_user_feedback(request: Dict[str, Any]):
+	"""
+	사용자 피드백 수집 (Phase 2: ML 학습용)
+	"""
+	registration_logger.info("사용자 피드백 수집 요청 수신")
+
+	try:
+		# 서비스 초기화 확인
+		await initialize_services()
+
+		ocr_data = request.get('ocr_data', {})
+		verification_result = request.get('verification_result')
+		user_accepted = request.get('user_accepted', True)
+		corrected_text = request.get('corrected_text')
+
+		# 피드백 수집
+		await confidence_evaluator.collect_user_feedback(
+			ocr_data=ocr_data,
+			verification_result=verification_result,
+			user_accepted=user_accepted,
+			corrected_text=corrected_text
+		)
+
+		return {
+			"message": "피드백 수집 완료",
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"피드백 수집 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"피드백 수집 실패: {str(e)}"
+		)
+
+
+@router.post("/performance/update")
+async def update_performance_metrics(request: Dict[str, Any]):
+	"""
+	성능 지표 업데이트 및 임계값 자동 조정 (Phase 2)
+	"""
+	registration_logger.info("성능 지표 업데이트 요청 수신")
+
+	try:
+		# 서비스 초기화 확인
+		await initialize_services()
+
+		# 성능 지표 생성
+		metrics = PerformanceMetrics(
+			true_positives=request.get('true_positives', 0),
+			false_positives=request.get('false_positives', 0),
+			true_negatives=request.get('true_negatives', 0),
+			false_negatives=request.get('false_negatives', 0),
+			total_predictions=request.get('total_predictions', 0)
+		)
+
+		# 임계값 조정
+		adjustment_result = await confidence_evaluator.update_performance_metrics(metrics)
+
+		return {
+			"metrics": {
+				"precision": metrics.precision,
+				"recall": metrics.recall,
+				"f1_score": metrics.f1_score,
+				"accuracy": metrics.accuracy
+			},
+			"adjustment": adjustment_result,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"성능 지표 업데이트 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"성능 지표 업데이트 실패: {str(e)}"
+		)
+
+
+@router.get("/ml-model/info")
+async def get_ml_model_info():
+	"""
+	ML 모델 정보 조회 (Phase 2)
+	"""
+	registration_logger.info("ML 모델 정보 요청 수신")
+
+	try:
+		# 서비스 초기화 확인
+		await initialize_services()
+
+		model_info = confidence_evaluator.get_ml_model_info()
+		threshold_info = confidence_evaluator.get_threshold_info()
+
+		return {
+			"ml_model": model_info,
+			"thresholds": threshold_info,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"ML 모델 정보 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"ML 모델 정보 조회 실패: {str(e)}"
+		)
+
+
+@router.post("/thresholds/manual-override")
+async def manual_threshold_override(request: Dict[str, Any]):
+	"""
+	수동 임계값 설정 (Phase 2)
+	"""
+	registration_logger.info("수동 임계값 설정 요청 수신")
+
+	try:
+		# 서비스 초기화 확인
+		await initialize_services()
+
+		new_thresholds = request.get('thresholds', {})
+		reason = request.get('reason', 'manual_override')
+
+		# 임계값 검증
+		required_keys = ['high', 'medium', 'low', 'very_low']
+		if not all(key in new_thresholds for key in required_keys):
+			raise HTTPException(
+				status_code=status.HTTP_400_BAD_REQUEST,
+				detail=f"필수 임계값이 누락되었습니다: {required_keys}"
+			)
+
+		# 임계값 범위 검증
+		for key, value in new_thresholds.items():
+			if not 0.0 <= value <= 1.0:
+				raise HTTPException(
+					status_code=status.HTTP_400_BAD_REQUEST,
+					detail=f"임계값은 0.0과 1.0 사이여야 합니다: {key}={value}"
+				)
+
+		# 임계값 순서 검증 (high > medium > low > very_low)
+		if not (new_thresholds['high'] > new_thresholds['medium'] > 
+				new_thresholds['low'] > new_thresholds['very_low']):
+			raise HTTPException(
+				status_code=status.HTTP_400_BAD_REQUEST,
+				detail="임계값은 high > medium > low > very_low 순서여야 합니다"
+			)
+
+		# 수동 설정 적용
+		confidence_evaluator.threshold_manager.manual_threshold_override(new_thresholds, reason)
+
+		return {
+			"message": "임계값 수동 설정 완료",
+			"new_thresholds": new_thresholds,
+			"reason": reason,
+			"status": "success"
+		}
+
+	except HTTPException:
+		raise
+	except Exception as e:
+		registration_logger.error(f"수동 임계값 설정 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"임계값 설정 실패: {str(e)}"
+		)
+
+
+# ==================== 새로 추가된 API 엔드포인트 ====================
+
+@router.get("/search/assets")
+async def search_assets(query: str, field: str = "content", limit: int = 10):
+	"""
+	자산 검색 (Whoosh 기반 퍼지 검색)
+	"""
+	registration_logger.info(f"자산 검색 요청: query={query}, field={field}")
+
+	try:
+		search_engine = await get_search_engine()
+		results = await search_engine.fuzzy_search(query, field, limit)
+
+		return {
+			"query": query,
+			"field": field,
+			"results": results,
+			"count": len(results),
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"자산 검색 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"자산 검색 실패: {str(e)}"
+		)
+
+
+@router.get("/search/suggestions")
+async def get_search_suggestions(field: str, partial_text: str, limit: int = 5):
+	"""
+	검색 자동완성 제안
+	"""
+	registration_logger.info(f"자동완성 요청: field={field}, text={partial_text}")
+
+	try:
+		search_engine = await get_search_engine()
+		suggestions = await search_engine.suggest_completions(field, partial_text, limit)
+
+		return {
+			"field": field,
+			"partial_text": partial_text,
+			"suggestions": suggestions,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"자동완성 제안 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"자동완성 제안 실패: {str(e)}"
+		)
+
+
+@router.get("/search/stats")
+async def get_search_stats():
+	"""
+	검색 엔진 통계
+	"""
+	registration_logger.info("검색 엔진 통계 요청")
+
+	try:
+		search_engine = await get_search_engine()
+		stats = await search_engine.get_stats()
+
+		return {
+			"stats": stats,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"검색 통계 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"검색 통계 조회 실패: {str(e)}"
+		)
+
+
+@router.get("/learning/status")
+async def get_learning_status():
+	"""
+	실시간 학습 상태 조회
+	"""
+	registration_logger.info("실시간 학습 상태 요청")
+
+	try:
+		learning_pipeline = await get_learning_pipeline()
+		status_info = await learning_pipeline.get_learning_status()
+
+		return {
+			"learning_status": status_info,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"학습 상태 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"학습 상태 조회 실패: {str(e)}"
+		)
+
+
+@router.get("/learning/performance")
+async def get_learning_performance(days: int = 7):
+	"""
+	학습 성능 메트릭 조회
+	"""
+	registration_logger.info(f"학습 성능 메트릭 요청: {days}일")
+
+	try:
+		learning_pipeline = await get_learning_pipeline()
+		metrics = await learning_pipeline.get_performance_metrics(days)
+
+		return {
+			"performance_metrics": metrics,
+			"days": days,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"성능 메트릭 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"성능 메트릭 조회 실패: {str(e)}"
+		)
+
+
+@router.get("/monitoring/request-stats")
+async def get_request_stats(hours: int = 24):
+	"""
+	요청 통계 조회
+	"""
+	registration_logger.info(f"요청 통계 조회: {hours}시간")
+
+	try:
+		monitor = await get_performance_monitor()
+		stats = await monitor.get_request_stats(hours)
+
+		return {
+			"request_stats": stats,
+			"hours": hours,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"요청 통계 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"요청 통계 조회 실패: {str(e)}"
+		)
+
+
+@router.get("/monitoring/system-stats")
+async def get_system_stats(hours: int = 24):
+	"""
+	시스템 통계 조회
+	"""
+	registration_logger.info(f"시스템 통계 조회: {hours}시간")
+
+	try:
+		monitor = await get_performance_monitor()
+		stats = await monitor.get_system_stats(hours)
+
+		return {
+			"system_stats": stats,
+			"hours": hours,
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"시스템 통계 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"시스템 통계 조회 실패: {str(e)}"
+		)
+
+
+@router.get("/monitoring/alerts")
+async def get_performance_alerts(hours: int = 24, severity: str = None):
+	"""
+	성능 알림 조회
+	"""
+	registration_logger.info(f"성능 알림 조회: {hours}시간, severity={severity}")
+
+	try:
+		monitor = await get_performance_monitor()
+		alerts = await monitor.get_alerts(hours, severity)
+
+		return {
+			"alerts": alerts,
+			"hours": hours,
+			"severity": severity,
+			"count": len(alerts),
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"성능 알림 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"성능 알림 조회 실패: {str(e)}"
+		)
+
+
+@router.post("/ab-test/create")
+async def create_ab_test(request: Dict[str, Any]):
+	"""
+	A/B 테스트 생성
+	"""
+	registration_logger.info("A/B 테스트 생성 요청")
+
+	try:
+		from app.services.ab_testing import ABTestConfig, TestVariant, TestStatus
+		from datetime import datetime
+
+		# 요청 데이터 검증
+		config_data = request.get('config', {})
+		variants_data = request.get('variants', [])
+
+		if not config_data or not variants_data:
+			raise HTTPException(
+				status_code=status.HTTP_400_BAD_REQUEST,
+				detail="config와 variants가 필요합니다"
+			)
+
+		# 테스트 설정 생성
+		config = ABTestConfig(
+			test_id=config_data['test_id'],
+			name=config_data['name'],
+			description=config_data['description'],
+			status=TestStatus.DRAFT,
+			traffic_split=config_data['traffic_split'],
+			start_date=datetime.fromisoformat(config_data['start_date']),
+			end_date=datetime.fromisoformat(config_data['end_date']),
+			success_metric=config_data['success_metric'],
+			minimum_sample_size=config_data['minimum_sample_size'],
+			confidence_level=config_data['confidence_level'],
+			created_by=config_data.get('created_by', 'system'),
+			created_at=datetime.utcnow(),
+			updated_at=datetime.utcnow()
+		)
+
+		# 테스트 변형 생성
+		variants = [TestVariant(**variant_data) for variant_data in variants_data]
+
+		# A/B 테스트 생성
+		ab_framework = await get_ab_testing_framework()
+		success = await ab_framework.create_test(config, variants)
+
+		if success:
+			return {
+				"message": "A/B 테스트가 성공적으로 생성되었습니다",
+				"test_id": config.test_id,
+				"status": "success"
+			}
+		else:
+			raise HTTPException(
+				status_code=status.HTTP_400_BAD_REQUEST,
+				detail="A/B 테스트 생성에 실패했습니다"
+			)
+
+	except HTTPException:
+		raise
+	except Exception as e:
+		registration_logger.error(f"A/B 테스트 생성 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"A/B 테스트 생성 실패: {str(e)}"
+		)
+
+
+@router.get("/ab-test/{test_id}/status")
+async def get_ab_test_status(test_id: str):
+	"""
+	A/B 테스트 상태 조회
+	"""
+	registration_logger.info(f"A/B 테스트 상태 조회: {test_id}")
+
+	try:
+		ab_framework = await get_ab_testing_framework()
+		test_status = await ab_framework.get_test_status(test_id)
+
+		if test_status:
+			return {
+				"test_status": test_status,
+				"status": "success"
+			}
+		else:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail=f"테스트를 찾을 수 없습니다: {test_id}"
+			)
+
+	except HTTPException:
+		raise
+	except Exception as e:
+		registration_logger.error(f"A/B 테스트 상태 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"A/B 테스트 상태 조회 실패: {str(e)}"
+		)
+
+
+@router.post("/ab-test/{test_id}/conversion")
+async def record_ab_test_conversion(test_id: str, request: Dict[str, Any]):
+	"""
+	A/B 테스트 전환 이벤트 기록
+	"""
+	registration_logger.info(f"A/B 테스트 전환 기록: {test_id}")
+
+	try:
+		user_id = request.get('user_id')
+		conversion_data = request.get('conversion_data', {})
+
+		if not user_id:
+			raise HTTPException(
+				status_code=status.HTTP_400_BAD_REQUEST,
+				detail="user_id가 필요합니다"
+			)
+
+		ab_framework = await get_ab_testing_framework()
+		success = await ab_framework.record_conversion(test_id, user_id, conversion_data)
+
+		if success:
+			return {
+				"message": "전환 이벤트가 기록되었습니다",
+				"test_id": test_id,
+				"user_id": user_id,
+				"status": "success"
+			}
+		else:
+			raise HTTPException(
+				status_code=status.HTTP_400_BAD_REQUEST,
+				detail="전환 이벤트 기록에 실패했습니다"
+			)
+
+	except HTTPException:
+		raise
+	except Exception as e:
+		registration_logger.error(f"A/B 테스트 전환 기록 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"전환 이벤트 기록 실패: {str(e)}"
+		)
+
+
+# ==================== GPU OCR API 엔드포인트 ====================
+
+@router.post("/gpu-ocr/batch")
+async def process_batch_gpu_ocr(files: List[UploadFile] = File(...)):
+	"""
+	GPU 최적화 배치 OCR 처리
+	"""
+	registration_logger.info(f"GPU 배치 OCR 요청 수신: {len(files)}개 파일")
+
+	try:
+		# GPU 환경 확인
+		gpu_manager = await get_gpu_manager()
+		if not gpu_manager.is_gpu_available():
+			registration_logger.warning("GPU를 사용할 수 없어 CPU로 처리합니다")
+
+		# 이미지 파일 검증
+		image_data = []
+		for file in files:
+			if not file.content_type.startswith("image/"):
+				raise HTTPException(
+					status_code=status.HTTP_400_BAD_REQUEST,
+					detail=f"잘못된 파일 형식: {file.filename}"
+				)
+
+			data = await file.read()
+			image_data.append({
+				"filename": file.filename,
+				"data": data,
+				"content_type": file.content_type
+			})
+
+		# 배치 OCR 엔진으로 처리
+		batch_engine = await get_batch_ocr_engine()
+
+		# BatchOCRRequest 생성
+		batch_request = BatchOCRRequest(
+			images=image_data,
+			use_gpu=gpu_manager.is_gpu_available(),
+			batch_size=await gpu_manager.get_optimal_batch_size() if gpu_manager.is_gpu_available() else 4
+		)
+
+		# 배치 처리 실행
+		results = await batch_engine.process_batch(batch_request)
+
+		registration_logger.info(f"GPU 배치 OCR 처리 완료: {len(results.results)}개 결과")
+
+		return {
+			"message": "GPU 배치 OCR 처리가 완료되었습니다",
+			"total_images": len(files),
+			"processed_images": len(results.results),
+			"processing_time": results.processing_time,
+			"gpu_used": results.gpu_used,
+			"results": [
+				{
+					"filename": result.filename,
+					"text": result.text,
+					"confidence": result.confidence,
+					"processing_time": result.processing_time,
+					"bounding_boxes": result.bounding_boxes
+				}
+				for result in results.results
+			],
+			"performance_stats": {
+				"total_time": results.processing_time,
+				"average_time_per_image": results.processing_time / len(results.results) if results.results else 0,
+				"gpu_memory_used": results.gpu_memory_used,
+				"cpu_usage": results.cpu_usage
+			},
+			"status": "success"
+		}
+
+	except HTTPException:
+		raise
+	except Exception as e:
+		registration_logger.error(f"GPU 배치 OCR 처리 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"GPU 배치 OCR 처리 실패: {str(e)}"
+		)
+
+
+@router.get("/gpu-ocr/stats")
+async def get_gpu_ocr_stats():
+	"""
+	GPU OCR 시스템 통계 조회
+	"""
+	registration_logger.info("GPU OCR 통계 요청 수신")
+
+	try:
+		gpu_manager = await get_gpu_manager()
+		batch_engine = await get_batch_ocr_engine()
+
+		# GPU 상태 정보
+		gpu_stats = await gpu_manager.get_gpu_stats()
+
+		# 배치 엔진 통계
+		engine_stats = await batch_engine.get_performance_stats()
+
+		return {
+			"gpu_info": {
+				"available": gpu_manager.is_gpu_available(),
+				"device_count": gpu_stats.get("device_count", 0),
+				"current_device": gpu_stats.get("current_device", "cpu"),
+				"memory_info": gpu_stats.get("memory_info", {}),
+				"utilization": gpu_stats.get("utilization", {})
+			},
+			"performance_stats": {
+				"total_processed": engine_stats.get("total_processed", 0),
+				"average_processing_time": engine_stats.get("average_processing_time", 0),
+				"gpu_acceleration_ratio": engine_stats.get("gpu_acceleration_ratio", 1.0),
+				"memory_efficiency": engine_stats.get("memory_efficiency", 0),
+				"error_rate": engine_stats.get("error_rate", 0)
+			},
+			"system_health": {
+				"status": "healthy" if gpu_stats.get("healthy", True) else "warning",
+				"last_updated": datetime.utcnow().isoformat(),
+				"uptime": gpu_stats.get("uptime", 0)
+			},
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"GPU OCR 통계 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"GPU OCR 통계 조회 실패: {str(e)}"
+		)
+
+
+@router.get("/gpu-ocr/scheduler/status")
+async def get_scheduler_status():
+	"""
+	OCR 스케줄러 상태 조회
+	"""
+	registration_logger.info("OCR 스케줄러 상태 요청 수신")
+
+	try:
+		scheduler = await get_ocr_scheduler()
+		status_info = await scheduler.get_status()
+
+		return {
+			"scheduler_status": status_info,
+			"queue_info": {
+				"pending_jobs": status_info.get("pending_jobs", 0),
+				"running_jobs": status_info.get("running_jobs", 0),
+				"completed_jobs": status_info.get("completed_jobs", 0),
+				"failed_jobs": status_info.get("failed_jobs", 0)
+			},
+			"resource_usage": {
+				"gpu_utilization": status_info.get("gpu_utilization", 0),
+				"memory_usage": status_info.get("memory_usage", 0),
+				"cpu_usage": status_info.get("cpu_usage", 0)
+			},
+			"performance_metrics": {
+				"average_job_time": status_info.get("average_job_time", 0),
+				"throughput": status_info.get("throughput", 0),
+				"success_rate": status_info.get("success_rate", 100)
+			},
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"스케줄러 상태 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"스케줄러 상태 조회 실패: {str(e)}"
+		)
+
+
+@router.post("/gpu-ocr/scheduler/job")
+async def submit_ocr_job(request: Dict[str, Any]):
+	"""
+	OCR 작업 스케줄러에 작업 제출
+	"""
+	registration_logger.info("OCR 작업 제출 요청 수신")
+
+	try:
+		# 요청 데이터 검증
+		images = request.get('images', [])
+		priority = request.get('priority', 'normal')
+		options = request.get('options', {})
+
+		if not images:
+			raise HTTPException(
+				status_code=status.HTTP_400_BAD_REQUEST,
+				detail="처리할 이미지가 없습니다"
+			)
+
+		# OCR 작업 요청 생성
+		job_request = OCRJobRequest(
+			images=images,
+			priority=priority,
+			options=options,
+			submitted_at=datetime.utcnow()
+		)
+
+		# 스케줄러에 작업 제출
+		scheduler = await get_ocr_scheduler()
+		job_id = await scheduler.submit_job(job_request)
+
+		registration_logger.info(f"OCR 작업 제출 완료: {job_id}")
+
+		return {
+			"message": "OCR 작업이 성공적으로 제출되었습니다",
+			"job_id": job_id,
+			"estimated_completion_time": await scheduler.estimate_completion_time(job_id),
+			"queue_position": await scheduler.get_queue_position(job_id),
+			"status": "success"
+		}
+
+	except HTTPException:
+		raise
+	except Exception as e:
+		registration_logger.error(f"OCR 작업 제출 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"OCR 작업 제출 실패: {str(e)}"
+		)
+
+
+@router.get("/gpu-ocr/scheduler/job/{job_id}")
+async def get_job_status(job_id: str):
+	"""
+	OCR 작업 상태 조회
+	"""
+	registration_logger.info(f"OCR 작업 상태 조회: {job_id}")
+
+	try:
+		scheduler = await get_ocr_scheduler()
+		job_status = await scheduler.get_job_status(job_id)
+
+		if not job_status:
+			raise HTTPException(
+				status_code=status.HTTP_404_NOT_FOUND,
+				detail=f"작업을 찾을 수 없습니다: {job_id}"
+			)
+
+		return {
+			"job_id": job_id,
+			"status": job_status.get("status", "unknown"),
+			"progress": job_status.get("progress", 0),
+			"created_at": job_status.get("created_at"),
+			"started_at": job_status.get("started_at"),
+			"completed_at": job_status.get("completed_at"),
+			"processing_time": job_status.get("processing_time", 0),
+			"results": job_status.get("results", []),
+			"error_message": job_status.get("error_message"),
+			"queue_position": job_status.get("queue_position", 0),
+			"estimated_completion": job_status.get("estimated_completion"),
+			"resource_usage": job_status.get("resource_usage", {}),
+			"status": "success"
+		}
+
+	except HTTPException:
+		raise
+	except Exception as e:
+		registration_logger.error(f"OCR 작업 상태 조회 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"OCR 작업 상태 조회 실패: {str(e)}"
 		)
 
 

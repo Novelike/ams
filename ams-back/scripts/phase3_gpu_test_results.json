@@ -1,0 +1,38 @@
+{
+  "total_tests": 6,
+  "passed": 1,
+  "failed": 5,
+  "success_rate": 16.666666666666664,
+  "detailed_results": [
+    {
+      "test": "connection",
+      "status": "PASS",
+      "details": "6 workflow steps"
+    },
+    {
+      "test": "gpu_stats",
+      "status": "FAIL",
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}"
+    },
+    {
+      "test": "scheduler_status",
+      "status": "FAIL",
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}"
+    },
+    {
+      "test": "batch_gpu_ocr",
+      "status": "FAIL",
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}"
+    },
+    {
+      "test": "ocr_job_submission",
+      "status": "FAIL",
+      "details": "HTTP 404: {\"detail\":\"Not Found\"}"
+    },
+    {
+      "test": "performance_monitoring",
+      "status": "FAIL",
+      "details": "HTTP 404"
+    }
+  ]
+}
