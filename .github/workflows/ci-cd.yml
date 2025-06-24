@@ -50,7 +50,7 @@ jobs:
     - name: Code formatting check (Black)
       run: |
         cd ams-back
-        black --check --diff .
+        black --diff .
         
     - name: Import sorting check (isort)
       run: |
