@@ -1,0 +1,6 @@
+asset_number,model_name,serial_number,manufacturer,site,asset_type,user,registration_date
+AMS-2025-5d6664c6,ThinkPad X1 Carbon,PC123456,Lenovo,서울본사,laptop,홍길동,2025-06-24T02:04:33.172428
+AMS-2025-27076ecc,Dell XPS 15,DL789012,Dell,부산지사,laptop,김철수,2025-06-24T02:04:35.204515
+AMS-2025-ed4953e5,MacBook Pro,AP345678,Apple,대구지사,laptop,이영희,2025-06-24T02:04:37.244844
+AMS-2025-9eb98c35,LG UltraWide Monitor,LG901234,LG,서울본사,monitor,박지민,2025-06-24T02:04:39.286862
+AMS-2025-cf6da715,Magic Keyboard,KB567890,Apple,광주지사,keyboard,최민수,2025-06-24T02:04:41.338077

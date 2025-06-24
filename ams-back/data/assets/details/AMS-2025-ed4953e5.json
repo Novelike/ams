@@ -1,0 +1,28 @@
+{
+  "basic_info": {
+    "asset_number": "AMS-2025-ed4953e5",
+    "model_name": "MacBook Pro",
+    "serial_number": "AP345678",
+    "manufacturer": "Apple",
+    "site": "대구지사",
+    "asset_type": "laptop",
+    "user": "이영희",
+    "registration_date": "2025-06-24T02:04:37.244844"
+  },
+  "specs": {
+    "cpu": "Apple M2 Pro",
+    "memory": "16GB Unified Memory",
+    "storage": "512GB SSD",
+    "display": "14.2인치 Liquid Retina XDR"
+  },
+  "ocr_results": {
+    "model": "MacBook Pro",
+    "serial": "AP345678",
+    "manufacturer": "Apple"
+  },
+  "metadata": {
+    "image_path": null,
+    "segmentation_results": null,
+    "processing_timestamp": "2025-06-24T02:04:37.245846"
+  }
+}

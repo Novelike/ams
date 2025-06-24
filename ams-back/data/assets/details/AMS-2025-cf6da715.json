@@ -1,0 +1,28 @@
+{
+  "basic_info": {
+    "asset_number": "AMS-2025-cf6da715",
+    "model_name": "Magic Keyboard",
+    "serial_number": "KB567890",
+    "manufacturer": "Apple",
+    "site": "광주지사",
+    "asset_type": "keyboard",
+    "user": "최민수",
+    "registration_date": "2025-06-24T02:04:41.338077"
+  },
+  "specs": {
+    "type": "무선 키보드",
+    "layout": "한국어",
+    "connectivity": "Bluetooth",
+    "features": "Touch ID"
+  },
+  "ocr_results": {
+    "model": "Magic Keyboard",
+    "serial": "KB567890",
+    "manufacturer": "Apple"
+  },
+  "metadata": {
+    "image_path": null,
+    "segmentation_results": null,
+    "processing_timestamp": "2025-06-24T02:04:41.339146"
+  }
+}

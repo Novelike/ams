@@ -52,8 +52,10 @@
 
    또는 uvicorn으로 직접 실행:
    ```
-   uvicorn main:app --reload
+   uvicorn main:app --reload --log-config logging_config.py:LOGGING_CONFIG
    ```
+
+   이 명령은 로깅 설정 파일을 사용하여 모든 로그가 콘솔에 올바르게 표시되도록 합니다.
 
 6. API 문서 접근:
    - Swagger UI: http://localhost:8000/docs

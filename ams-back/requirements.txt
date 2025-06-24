@@ -2,6 +2,15 @@ fastapi==0.110.0
 uvicorn==0.27.1
 python-multipart==0.0.9
 pydantic==1.10.8
-typing-extensions==4.8.0
+typing-extensions
 python-dotenv==1.0.1
 qrcode==7.4.2
+easyocr~=1.7.2
+opencv-python~=4.11.0.86
+pillow
+ultralytics~=8.3.158
+torch
+transformers
+numpy
+openai
+sse-starlette==1.6.5

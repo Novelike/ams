@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>SSE 테스트 페이지</title>
+	<style>
+		body {
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			max-width: 800px;
+			margin: 0 auto;
+			padding: 20px;
+		}
+
+		h1 {
+			color: #333;
+			border-bottom: 1px solid #ddd;
+			padding-bottom: 10px;
+		}
+
+		.card {
+			border: 1px solid #ddd;
+			border-radius: 8px;
+			padding: 15px;
+			margin-bottom: 20px;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		}
+
+		.form-group {
+			margin-bottom: 15px;
+		}
+
+		label {
+			display: block;
+			margin-bottom: 5px;
+			font-weight: bold;
+		}
+
+		input, select {
+			width: 100%;
+			padding: 8px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			box-sizing: border-box;
+		}
+
+		button {
+			background-color: #4CAF50;
+			color: white;
+			border: none;
+			padding: 10px 15px;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+
+		button:hover {
+			background-color: #45a049;
+		}
+
+		#events {
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			padding: 10px;
+			height: 300px;
+			overflow-y: auto;
+			background-color: #f9f9f9;
+		}
+
+		.event {
+			margin-bottom: 10px;
+			padding: 10px;
+			border-radius: 4px;
+		}
+
+		.event-segment_start {
+			background-color: #e6f7ff;
+		}
+
+		.event-segment_done {
+			background-color: #d9f7be;
+		}
+
+		.event-ocr_start {
+			background-color: #fff7e6;
+		}
+
+		.event-ocr_done {
+			background-color: #f6ffed;
+		}
+
+		.event-register_start {
+			background-color: #fcf4ff;
+		}
+
+		.event-register_done {
+			background-color: #e6fffb;
+		}
+
+		.event-error {
+			background-color: #fff1f0;
+		}
+
+		.job-info {
+			font-weight: bold;
+			margin-top: 10px;
+		}
+	</style>
+</head>
+<body>
+<h1>SSE 테스트 페이지</h1>
+
+<div class="card">
+	<h2>세그멘테이션 테스트</h2>
+	<div class="form-group">
+		<label for="segmentImagePath">이미지 경로:</label>
+		<input type="text" id="segmentImagePath" value="uploads/test_image_20250623_135631.jpg">
+	</div>
+	<button onclick="testSegmentation()">세그멘테이션 시작</button>
+	<div class="job-info" id="segmentJobInfo"></div>
+</div>
+
+<div class="card">
+	<h2>OCR 테스트</h2>
+	<div class="form-group">
+		<label for="ocrImagePath">이미지 경로:</label>
+		<input type="text" id="ocrImagePath" value="uploads/test_image_20250623_135631.jpg">
+	</div>
+	<button onclick="testOCR()">OCR 시작</button>
+	<div class="job-info" id="ocrJobInfo"></div>
+</div>
+
+<div class="card">
+	<h2>자산 등록 테스트</h2>
+	<div class="form-group">
+		<label for="modelName">모델명:</label>
+		<input type="text" id="modelName" value="ThinkPad X1">
+	</div>
+	<div class="form-group">
+		<label for="site">사이트:</label>
+		<input type="text" id="site" value="본사">
+	</div>
+	<div class="form-group">
+		<label for="assetType">자산 유형:</label>
+		<select id="assetType">
+			<option value="laptop">노트북</option>
+			<option value="desktop">데스크탑</option>
+			<option value="monitor">모니터</option>
+		</select>
+	</div>
+	<button onclick="testRegistration()">자산 등록 시작</button>
+	<div class="job-info" id="registerJobInfo"></div>
+</div>
+
+<h2>이벤트 로그</h2>
+<div id="events"></div>
+
+<script>
+	// 현재 활성화된 EventSource 객체들
+	const eventSources = {};
+
+	// 이벤트 로그에 메시지 추가
+	function addEventMessage(stage, message, timestamp) {
+		const eventsDiv = document.getElementById('events');
+		const eventDiv = document.createElement('div');
+		eventDiv.className = `event event-${stage}`;
+
+		const time = new Date(timestamp).toLocaleTimeString();
+		eventDiv.innerHTML = `<strong>${time} - ${stage}:</strong> ${message}`;
+
+		eventsDiv.appendChild(eventDiv);
+		eventsDiv.scrollTop = eventsDiv.scrollHeight;
+	}
+
+	// SSE 연결 설정
+	function setupSSE(jobId) {
+		// 이미 연결이 있으면 닫기
+		if (eventSources[jobId]) {
+			eventSources[jobId].close();
+		}
+
+		// 새 SSE 연결 생성
+		const eventSource = new EventSource(`/api/registration/status/${jobId}`);
+		eventSources[jobId] = eventSource;
+
+		// 연결 이벤트
+		eventSource.addEventListener('connected', function (e) {
+			console.log('SSE 연결됨:', e.data);
+			const data = JSON.parse(e.data);
+			addEventMessage('connected', `작업 ${data.job_id}에 연결됨`, new Date());
+		});
+
+		// 메시지 이벤트
+		eventSource.onmessage = function (e) {
+			console.log('SSE 메시지:', e.data);
+			const data = JSON.parse(e.data);
+			addEventMessage(data.stage, data.message, data.timestamp);
+
+			// 작업 완료 또는 오류 시 연결 종료
+			if (data.stage.endsWith('_done') || data.stage === 'error') {
+				setTimeout(() => {
+					eventSource.close();
+					delete eventSources[jobId];
+				}, 1000);
+			}
+		};
+
+		// 오류 이벤트
+		eventSource.onerror = function (e) {
+			console.error('SSE 오류:', e);
+			addEventMessage('error', 'SSE 연결 오류', new Date());
+			eventSource.close();
+			delete eventSources[jobId];
+		};
+	}
+
+	// 세그멘테이션 테스트
+	async function testSegmentation() {
+		const imagePath = document.getElementById('segmentImagePath').value;
+
+		try {
+			const response = await fetch('/api/registration/segment', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					image_path: imagePath
+				})
+			});
+
+			const data = await response.json();
+			console.log('세그멘테이션 작업 시작:', data);
+
+			document.getElementById('segmentJobInfo').textContent = `작업 ID: ${data.job_id}`;
+
+			// SSE 연결 설정
+			setupSSE(data.job_id);
+		} catch (error) {
+			console.error('세그멘테이션 오류:', error);
+			addEventMessage('error', `세그멘테이션 요청 오류: ${error.message}`, new Date());
+		}
+	}
+
+	// OCR 테스트
+	async function testOCR() {
+		const imagePath = document.getElementById('ocrImagePath').value;
+
+		try {
+			const response = await fetch('/api/registration/ocr', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					image_path: imagePath
+				})
+			});
+
+			const data = await response.json();
+			console.log('OCR 작업 시작:', data);
+
+			document.getElementById('ocrJobInfo').textContent = `작업 ID: ${data.job_id}`;
+
+			// SSE 연결 설정
+			setupSSE(data.job_id);
+		} catch (error) {
+			console.error('OCR 오류:', error);
+			addEventMessage('error', `OCR 요청 오류: ${error.message}`, new Date());
+		}
+	}
+
+	// 자산 등록 테스트
+	async function testRegistration() {
+		const modelName = document.getElementById('modelName').value;
+		const site = document.getElementById('site').value;
+		const assetType = document.getElementById('assetType').value;
+
+		try {
+			const response = await fetch('/api/registration/register', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					model_name: modelName,
+					site: site,
+					asset_type: assetType
+				})
+			});
+
+			const data = await response.json();
+			console.log('자산 등록 작업 시작:', data);
+
+			document.getElementById('registerJobInfo').textContent = `작업 ID: ${data.job_id}`;
+
+			// SSE 연결 설정
+			setupSSE(data.job_id);
+		} catch (error) {
+			console.error('자산 등록 오류:', error);
+			addEventMessage('error', `자산 등록 요청 오류: ${error.message}`, new Date());
+		}
+	}
+</script>
+</body>
+</html>

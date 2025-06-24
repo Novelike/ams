@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR 텍스트 후처리 테스트</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-case { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+        .success { background-color: #d4edda; }
+        .failure { background-color: #f8d7da; }
+        .result { margin-top: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>OCR 텍스트 후처리 기능 테스트</h1>
+    <div id="test-results"></div>
+
+    <script type="module">
+        // registrationUtils.js 함수들을 직접 구현 (모듈 import 대신)
+        const extractValueFromText = (text) => {
+            if (!text || typeof text !== 'string') {
+                return { category: 'other', value: text, confidence: 0 };
+            }
+
+            const cleanText = text.trim();
+
+            // 패턴 1: "제목: 내용" 형태
+            const colonPattern = /^([^:]+):\s*(.+)$/;
+            const colonMatch = cleanText.match(colonPattern);
+
+            if (colonMatch) {
+                const title = colonMatch[1].trim();
+                const content = colonMatch[2].trim();
+
+                const category = categorizeFromTitle(title);
+                const value = cleanContent(content);
+
+                return { category, value, confidence: 0.9 };
+            }
+
+            // 패턴 2: "제목 내용" 형태 (공백으로 구분)
+            const spacePattern = /^(모델명|제조사|시리얼번호|시리얼|제조자|제조업체|상호명|기자재|명칭|제품명칭)\s+(.+)$/;
+            const spaceMatch = cleanText.match(spacePattern);
+
+            if (spaceMatch) {
+                const title = spaceMatch[1].trim();
+                const content = spaceMatch[2].trim();
+
+                const category = categorizeFromTitle(title);
+                const value = cleanContent(content);
+
+                return { category, value, confidence: 0.8 };
+            }
+
+            // 패턴 3: 일반 텍스트
+            return { category: 'other', value: cleanText, confidence: 0.5 };
+        };
+
+        const categorizeFromTitle = (title) => {
+            const lowerTitle = title.toLowerCase();
+
+            if (lowerTitle.includes('모델') || lowerTitle.includes('model') || 
+                lowerTitle.includes('기자재') || lowerTitle.includes('명칭') || 
+                lowerTitle.includes('제품명칭')) {
+                return 'model';
+            }
+
+            if (lowerTitle.includes('제조') || lowerTitle.includes('manufacturer') || 
+                lowerTitle.includes('상호명') || lowerTitle.includes('제조업체') || 
+                lowerTitle.includes('제조자')) {
+                return 'manufacturer';
+            }
+
+            if (lowerTitle.includes('시리얼') || lowerTitle.includes('serial') || 
+                lowerTitle.includes('s/n') || lowerTitle.includes('sn')) {
+                return 'serial';
+            }
+
+            if (lowerTitle.includes('전압') || lowerTitle.includes('voltage') || 
+                lowerTitle.includes('정격') || lowerTitle.includes('스펙')) {
+                return 'spec';
+            }
+
+            return 'other';
+        };
+
+        const cleanContent = (content) => {
+            if (!content) return '';
+
+            let cleaned = content.trim();
+
+            // 괄호와 괄호 안의 내용 제거
+            cleaned = cleaned.replace(/\([^)]*\)/g, '').trim();
+            cleaned = cleaned.replace(/\[[^\]]*\]/g, '').trim();
+
+            // 불필요한 접두사 제거
+            const unnecessaryPatterns = [
+                /^기자재의\s*/gi,
+                /^제품의\s*/gi,
+                /^상품의\s*/gi,
+                /^장비의\s*/gi,
+                /^상호명(?=\S)/gi,
+                /^제조자\s+/gi,
+                /^제조국가\s*/gi
+            ];
+
+            for (const pattern of unnecessaryPatterns) {
+                cleaned = cleaned.replace(pattern, '').trim();
+            }
+
+            // 연속된 공백을 하나로 정리
+            cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+            return cleaned;
+        };
+
+        // 테스트 케이스들
+        const testCases = [
+            {
+                input: "모델명: 15U50R",
+                expected_category: "model",
+                expected_value: "15U50R",
+                description: "기본 콜론 패턴"
+            },
+            {
+                input: "제조사: 엘지",
+                expected_category: "manufacturer", 
+                expected_value: "엘지",
+                description: "제조사 콜론 패턴"
+            },
+            {
+                input: "모델명: 기자재의 명칭제품명칭 (모델명)",
+                expected_category: "model",
+                expected_value: "명칭제품명칭",
+                description: "복잡한 모델명 패턴"
+            },
+            {
+                input: "제조사: 상호명제조업체명",
+                expected_category: "manufacturer",
+                expected_value: "제조업체명",
+                description: "복잡한 제조사 패턴"
+            },
+            {
+                input: "시리얼번호: PC123456",
+                expected_category: "serial",
+                expected_value: "PC123456",
+                description: "시리얼번호 패턴"
+            },
+            {
+                input: "정격전압: 220V",
+                expected_category: "spec",
+                expected_value: "220V",
+                description: "스펙 정보 패턴"
+            },
+            {
+                input: "모델명 ThinkPad X1",
+                expected_category: "model",
+                expected_value: "ThinkPad X1",
+                description: "공백 구분 패턴"
+            },
+            {
+                input: "일반 텍스트",
+                expected_category: "other",
+                expected_value: "일반 텍스트",
+                description: "일반 텍스트"
+            }
+        ];
+
+        // 테스트 실행
+        function runTests() {
+            const resultsDiv = document.getElementById('test-results');
+            let successCount = 0;
+            let totalCount = testCases.length;
+
+            testCases.forEach((testCase, index) => {
+                const result = extractValueFromText(testCase.input);
+                
+                const categoryMatch = result.category === testCase.expected_category;
+                const valueMatch = result.value === testCase.expected_value;
+                const success = categoryMatch && valueMatch;
+                
+                if (success) successCount++;
+
+                const testDiv = document.createElement('div');
+                testDiv.className = `test-case ${success ? 'success' : 'failure'}`;
+                
+                let html = `
+                    <h3>${index + 1}. ${testCase.description}</h3>
+                    <p><strong>입력:</strong> "${testCase.input}"</p>
+                    <p><strong>결과:</strong> 카테고리='${result.category}', 값='${result.value}', 신뢰도=${result.confidence}</p>
+                    <div class="result">${success ? '✅ 성공' : '❌ 실패'}</div>
+                `;
+                
+                if (!success) {
+                    if (!categoryMatch) {
+                        html += `<p style="color: red;">카테고리 불일치: 예상='${testCase.expected_category}', 실제='${result.category}'</p>`;
+                    }
+                    if (!valueMatch) {
+                        html += `<p style="color: red;">값 불일치: 예상='${testCase.expected_value}', 실제='${result.value}'</p>`;
+                    }
+                }
+                
+                testDiv.innerHTML = html;
+                resultsDiv.appendChild(testDiv);
+            });
+
+            // 결과 요약
+            const summaryDiv = document.createElement('div');
+            summaryDiv.style.cssText = 'margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 5px;';
+            summaryDiv.innerHTML = `
+                <h2>테스트 결과 요약</h2>
+                <p><strong>${successCount}/${totalCount} 성공</strong></p>
+                <p>성공률: ${((successCount / totalCount) * 100).toFixed(1)}%</p>
+            `;
+            resultsDiv.appendChild(summaryDiv);
+        }
+
+        // 페이지 로드 시 테스트 실행
+        runTests();
+    </script>
+</body>
+</html>

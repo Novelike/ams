@@ -1,334 +1,400 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  TextField,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  Grid,
-  Button,
-  IconButton,
-  Chip
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+	Box,
+	Typography,
+	TextField,
+	Button,
+	Paper,
+	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogActions,
+	Chip
+} from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
+import { Search, Visibility, Refresh } from '@mui/icons-material';
+import api from '../services/api';
 
 const AssetList = () => {
-  // State for pagination
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  
-  // State for filtering
-  const [filters, setFilters] = useState({
-    site: "",
-    assetType: "",
-    user: "",
-    manufacturer: "",
-    searchTerm: ""
-  });
-  
-  // State for sorting
-  const [sortBy, setSortBy] = useState("registration_date");
-  const [sortDirection, setSortDirection] = useState("desc");
-  
-  // State for showing filter panel
-  const [showFilters, setShowFilters] = useState(false);
-  
-  // Mock data for sites and asset types
-  const sites = ["판교 본사", "고양 지사", "압구정 LF", "마곡 LG Science Park", "역삼 GS 타워"];
-  const assetTypes = ["laptop", "desktop", "monitor", "keyboard", "mouse", "pad", "bag", "other"];
-  
-  // Mock data for assets (in a real app, this would come from an API call)
-  const [assets, setAssets] = useState([
-    {
-      id: "1",
-      asset_number: "AMS-2023-001",
-      model_name: "ThinkPad X1 Carbon",
-      serial_number: "PF-2X4N7",
-      manufacturer: "Lenovo",
-      site: "판교 본사",
-      asset_type: "laptop",
-      user: "김철수",
-      registration_date: "2023-01-15"
-    },
-    {
-      id: "2",
-      asset_number: "AMS-2023-002",
-      model_name: "Dell XPS 15",
-      serial_number: "DL-9X5T7",
-      manufacturer: "Dell",
-      site: "고양 지사",
-      asset_type: "laptop",
-      user: "이영희",
-      registration_date: "2023-02-10"
-    },
-    {
-      id: "3",
-      asset_number: "AMS-2023-003",
-      model_name: "LG Gram 17",
-      serial_number: "LG-17Z90P-K",
-      manufacturer: "LG",
-      site: "마곡 LG Science Park",
-      asset_type: "laptop",
-      user: "박지민",
-      registration_date: "2023-03-05"
-    }
-  ]);
-  
-  // Total count (in a real app, this would come from the API)
-  const totalCount = 100;
-  
-  // Handle page change
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-    // In a real app, this would trigger a new API call with the updated page
-  };
-  
-  // Handle rows per page change
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-    // In a real app, this would trigger a new API call with the updated page size
-  };
-  
-  // Handle filter change
-  const handleFilterChange = (event) => {
-    const { name, value } = event.target;
-    setFilters(prevFilters => ({
-      ...prevFilters,
-      [name]: value
-    }));
-    // In a real app, this would trigger a new API call with the updated filters
-  };
-  
-  // Handle search
-  const handleSearch = () => {
-    // In a real app, this would trigger a new API call with the search term
-    console.log("Searching for:", filters.searchTerm);
-  };
-  
-  // Handle sort change
-  const handleSortChange = (column) => {
-    if (sortBy === column) {
-      // Toggle direction if clicking the same column
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      // Set new column and default to ascending
-      setSortBy(column);
-      setSortDirection("asc");
-    }
-    // In a real app, this would trigger a new API call with the updated sort
-  };
-  
-  // Toggle filter panel
-  const toggleFilters = () => {
-    setShowFilters(!showFilters);
-  };
-  
-  // Clear all filters
-  const clearFilters = () => {
-    setFilters({
-      site: "",
-      assetType: "",
-      user: "",
-      manufacturer: "",
-      searchTerm: ""
-    });
-    // In a real app, this would trigger a new API call with cleared filters
-  };
-  
-  // Get asset type label in Korean
-  const getAssetTypeLabel = (type) => {
-    const typeMap = {
-      laptop: "노트북",
-      desktop: "데스크탑",
-      monitor: "모니터",
-      keyboard: "키보드",
-      mouse: "마우스",
-      pad: "패드",
-      bag: "가방",
-      other: "기타"
-    };
-    return typeMap[type] || type;
-  };
-  
-  return (
-    <Box sx={{ marginBottom: "30px" }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        자산 목록
-      </Typography>
-      
-      {/* Search and filter bar */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              label="검색"
-              name="searchTerm"
-              value={filters.searchTerm}
-              onChange={handleFilterChange}
-              placeholder="모델명, 일련번호, 자산번호 등"
-              InputProps={{
-                endAdornment: (
-                  <IconButton onClick={handleSearch}>
-                    <SearchIcon />
-                  </IconButton>
-                )
-              }}
-            />
-          </Grid>
-          <Grid item>
-            <Button
-              variant="outlined"
-              startIcon={<FilterListIcon />}
-              onClick={toggleFilters}
-            >
-              필터
-            </Button>
-          </Grid>
-          {Object.entries(filters).map(([key, value]) => 
-            key !== "searchTerm" && value && (
-              <Grid item key={key}>
-                <Chip 
-                  label={`${key === "site" ? "사이트" : 
-                          key === "assetType" ? "유형" : 
-                          key === "user" ? "사용자" : 
-                          "제조사"}: ${key === "assetType" ? getAssetTypeLabel(value) : value}`} 
-                  onDelete={() => handleFilterChange({ target: { name: key, value: "" } })}
-                />
-              </Grid>
-            )
-          )}
-        </Grid>
-        
-        {/* Filter panel */}
-        {showFilters && (
-          <Box sx={{ mt: 2 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>사이트</InputLabel>
-                  <Select
-                    name="site"
-                    value={filters.site}
-                    onChange={handleFilterChange}
-                    label="사이트"
-                  >
-                    <MenuItem value="">전체</MenuItem>
-                    {sites.map(site => (
-                      <MenuItem key={site} value={site}>{site}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>자산 유형</InputLabel>
-                  <Select
-                    name="assetType"
-                    value={filters.assetType}
-                    onChange={handleFilterChange}
-                    label="자산 유형"
-                  >
-                    <MenuItem value="">전체</MenuItem>
-                    {assetTypes.map(type => (
-                      <MenuItem key={type} value={type}>{getAssetTypeLabel(type)}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <TextField
-                  fullWidth
-                  label="사용자"
-                  name="user"
-                  value={filters.user}
-                  onChange={handleFilterChange}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <TextField
-                  fullWidth
-                  label="제조사"
-                  name="manufacturer"
-                  value={filters.manufacturer}
-                  onChange={handleFilterChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Button variant="outlined" onClick={clearFilters}>
-                  필터 초기화
-                </Button>
-              </Grid>
-            </Grid>
-          </Box>
-        )}
-      </Paper>
-      
-      {/* Asset table */}
-      <Paper>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>자산 번호</TableCell>
-                <TableCell>모델명</TableCell>
-                <TableCell>일련번호</TableCell>
-                <TableCell>제조사</TableCell>
-                <TableCell>사이트</TableCell>
-                <TableCell>유형</TableCell>
-                <TableCell>사용자</TableCell>
-                <TableCell>등록일</TableCell>
-                <TableCell>상세</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {assets.map((asset) => (
-                <TableRow key={asset.id}>
-                  <TableCell>{asset.asset_number}</TableCell>
-                  <TableCell>{asset.model_name}</TableCell>
-                  <TableCell>{asset.serial_number}</TableCell>
-                  <TableCell>{asset.manufacturer}</TableCell>
-                  <TableCell>{asset.site}</TableCell>
-                  <TableCell>{getAssetTypeLabel(asset.asset_type)}</TableCell>
-                  <TableCell>{asset.user}</TableCell>
-                  <TableCell>{asset.registration_date}</TableCell>
-                  <TableCell>
-                    <IconButton size="small">
-                      <VisibilityIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          component="div"
-          count={totalCount}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 25, 50]}
-          labelRowsPerPage="페이지당 행 수:"
-          labelDisplayedRows={({ from, to, count }) => `${from}-${to} / ${count}`}
-        />
-      </Paper>
-    </Box>
-  );
+	const [assets, setAssets] = useState([]);
+	const [loading, setLoading] = useState(false);
+	const [totalCount, setTotalCount] = useState(0);
+	const [page, setPage] = useState(0);
+	const [pageSize, setPageSize] = useState(20);
+
+	// 필터 상태
+	const [filters, setFilters] = useState({
+		search: '',
+		asset_type: '',
+		site: '',
+		manufacturer: ''
+	});
+
+	// 상세 정보 다이얼로그
+	const [detailDialog, setDetailDialog] = useState(false);
+	const [selectedAsset, setSelectedAsset] = useState(null);
+	const [assetDetail, setAssetDetail] = useState(null);
+
+	// DataGrid 컬럼 정의
+	const columns = [
+		{
+			field: 'asset_number',
+			headerName: '자산번호',
+			width: 150,
+			renderCell: (params) => (
+				<Chip
+					label={params.value}
+					size="small"
+					color="primary"
+					variant="outlined"
+				/>
+			)
+		},
+		{ field: 'model_name', headerName: '모델명', width: 200 },
+		{ field: 'manufacturer', headerName: '제조사', width: 120 },
+		{ field: 'serial_number', headerName: '시리얼번호', width: 150 },
+		{ field: 'site', headerName: '지점', width: 100 },
+		{
+			field: 'asset_type',
+			headerName: '자산유형',
+			width: 100,
+			renderCell: (params) => {
+				const typeColors = {
+					laptop: 'primary',
+					desktop: 'secondary',
+					monitor: 'success',
+					keyboard: 'warning',
+					mouse: 'info',
+					pad: 'error',
+					bag: 'default',
+					other: 'default'
+				};
+				return (
+					<Chip
+						label={params.value}
+						size="small"
+						color={typeColors[params.value] || 'default'}
+					/>
+				);
+			}
+		},
+		{ field: 'user', headerName: '사용자', width: 100 },
+		{
+			field: 'registration_date',
+			headerName: '등록일',
+			width: 120,
+			renderCell: (params) => {
+				const date = new Date(params.value);
+				return date.toLocaleDateString('ko-KR');
+			}
+		},
+		{
+			field: 'actions',
+			headerName: '작업',
+			width: 120,
+			sortable: false,
+			renderCell: (params) => (
+				<Button
+					size="small"
+					startIcon={<Visibility />}
+					onClick={() => handleViewDetail(params.row)}
+					variant="outlined"
+				>
+					상세보기
+				</Button>
+			)
+		}
+	];
+
+	// 자산 목록 조회
+	const fetchAssets = async () => {
+		setLoading(true);
+		try {
+			const params = {
+				page: page + 1, // DataGrid는 0부터 시작하지만 API는 1부터 시작
+				page_size: pageSize,
+				...Object.fromEntries(
+					Object.entries(filters).filter(([_, value]) => value !== '')
+				)
+			};
+
+			const response = await api.get('/api/registration/assets/list', { params });
+			setAssets(response.data.items);
+			setTotalCount(response.data.total);
+		} catch (error) {
+			console.error('자산 목록 조회 실패:', error);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	// 자산 상세 정보 조회
+	const handleViewDetail = async (asset) => {
+		setSelectedAsset(asset);
+		setDetailDialog(true);
+
+		try {
+			const response = await api.get(`/api/registration/assets/${asset.asset_number}`);
+			setAssetDetail(response.data);
+		} catch (error) {
+			console.error('자산 상세 정보 조회 실패:', error);
+			setAssetDetail(null);
+		}
+	};
+
+	// 필터 변경 핸들러
+	const handleFilterChange = (field, value) => {
+		setFilters(prev => ({
+			...prev,
+			[field]: value
+		}));
+	};
+
+	// 검색 실행
+	const handleSearch = () => {
+		setPage(0); // 검색 시 첫 페이지로 이동
+		fetchAssets();
+	};
+
+	// 초기 로드 및 페이지/페이지크기 변경 시 데이터 조회
+	useEffect(() => {
+		fetchAssets();
+	}, [page, pageSize]);
+
+	return (
+		<Box sx={{ p: 3 }}>
+			<Typography variant="h4" gutterBottom>
+				자산 목록
+			</Typography>
+
+			{/* 필터 및 검색 영역 */}
+			<Paper sx={{ p: 2, mb: 3 }}>
+				<Box sx={{
+					display: 'grid',
+					gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+					gap: 2,
+					mb: 2
+				}}>
+					<TextField
+						label="검색"
+						placeholder="자산번호, 모델명, 시리얼번호, 제조사"
+						value={filters.search}
+						onChange={(e) => handleFilterChange('search', e.target.value)}
+						size="small"
+						InputProps={{
+							startAdornment: <Search sx={{ mr: 1, color: 'action.active' }} />
+						}}
+					/>
+
+					<FormControl size="small">
+						<InputLabel>자산유형</InputLabel>
+						<Select
+							value={filters.asset_type}
+							onChange={(e) => handleFilterChange('asset_type', e.target.value)}
+							label="자산유형"
+						>
+							<MenuItem value="">전체</MenuItem>
+							<MenuItem value="laptop">노트북</MenuItem>
+							<MenuItem value="desktop">데스크톱</MenuItem>
+							<MenuItem value="monitor">모니터</MenuItem>
+							<MenuItem value="keyboard">키보드</MenuItem>
+							<MenuItem value="mouse">마우스</MenuItem>
+							<MenuItem value="pad">패드</MenuItem>
+							<MenuItem value="bag">가방</MenuItem>
+							<MenuItem value="other">기타</MenuItem>
+						</Select>
+					</FormControl>
+
+					<TextField
+						label="지점"
+						value={filters.site}
+						onChange={(e) => handleFilterChange('site', e.target.value)}
+						size="small"
+					/>
+
+					<TextField
+						label="제조사"
+						value={filters.manufacturer}
+						onChange={(e) => handleFilterChange('manufacturer', e.target.value)}
+						size="small"
+					/>
+				</Box>
+
+				<Box sx={{ display: 'flex', gap: 1 }}>
+					<Button
+						variant="contained"
+						startIcon={<Search />}
+						onClick={handleSearch}
+					>
+						검색
+					</Button>
+					<Button
+						variant="outlined"
+						startIcon={<Refresh />}
+						onClick={() => {
+							setFilters({
+								search: '',
+								asset_type: '',
+								site: '',
+								manufacturer: ''
+							});
+							setPage(0);
+							fetchAssets();
+						}}
+					>
+						초기화
+					</Button>
+				</Box>
+			</Paper>
+
+			{/* 자산 목록 테이블 */}
+			<Paper sx={{ height: 600, width: '100%' }}>
+				<DataGrid
+					rows={assets}
+					columns={columns}
+					rowCount={totalCount}
+					loading={loading}
+					paginationMode="server"
+					page={page}
+					pageSize={pageSize}
+					onPageChange={setPage}
+					onPageSizeChange={setPageSize}
+					rowsPerPageOptions={[10, 20, 50, 100]}
+					disableSelectionOnClick
+					getRowId={(row) => row.asset_number}
+					sx={{
+						'& .MuiDataGrid-cell:focus': {
+							outline: 'none',
+						},
+						'& .MuiDataGrid-row:hover': {
+							backgroundColor: '#f5f5f5',
+						},
+					}}
+				/>
+			</Paper>
+
+			{/* 자산 상세 정보 다이얼로그 */}
+			<Dialog
+				open={detailDialog}
+				onClose={() => setDetailDialog(false)}
+				maxWidth="md"
+				fullWidth
+			>
+				<DialogTitle>
+					자산 상세 정보
+					{selectedAsset && (
+						<Typography variant="subtitle1" color="textSecondary">
+							{selectedAsset.asset_number}
+						</Typography>
+					)}
+				</DialogTitle>
+				<DialogContent>
+					{assetDetail ? (
+						<Box sx={{ mt: 1 }}>
+							{/* 기본 정보 */}
+							<Typography variant="h6" gutterBottom>
+								기본 정보
+							</Typography>
+							<Box sx={{
+								display: 'grid',
+								gridTemplateColumns: 'repeat(2, 1fr)',
+								gap: 2,
+								mb: 3
+							}}>
+								<TextField
+									label="자산번호"
+									value={assetDetail.basic_info?.asset_number || ''}
+									InputProps={{ readOnly: true }}
+									size="small"
+								/>
+								<TextField
+									label="모델명"
+									value={assetDetail.basic_info?.model_name || ''}
+									InputProps={{ readOnly: true }}
+									size="small"
+								/>
+								<TextField
+									label="시리얼번호"
+									value={assetDetail.basic_info?.serial_number || ''}
+									InputProps={{ readOnly: true }}
+									size="small"
+								/>
+								<TextField
+									label="제조사"
+									value={assetDetail.basic_info?.manufacturer || ''}
+									InputProps={{ readOnly: true }}
+									size="small"
+								/>
+								<TextField
+									label="지점"
+									value={assetDetail.basic_info?.site || ''}
+									InputProps={{ readOnly: true }}
+									size="small"
+								/>
+								<TextField
+									label="자산유형"
+									value={assetDetail.basic_info?.asset_type || ''}
+									InputProps={{ readOnly: true }}
+									size="small"
+								/>
+							</Box>
+
+							{/* 스펙 정보 */}
+							{assetDetail.specs && Object.keys(assetDetail.specs).length > 0 && (
+								<>
+									<Typography variant="h6" gutterBottom>
+										스펙 정보
+									</Typography>
+									<Box sx={{ mb: 3 }}>
+                    <pre style={{
+	                    backgroundColor: '#f5f5f5',
+	                    padding: '16px',
+	                    borderRadius: '4px',
+	                    fontSize: '14px',
+	                    overflow: 'auto'
+                    }}>
+                      {JSON.stringify(assetDetail.specs, null, 2)}
+                    </pre>
+									</Box>
+								</>
+							)}
+
+							{/* OCR 결과 */}
+							{assetDetail.ocr_results && Object.keys(assetDetail.ocr_results).length > 0 && (
+								<>
+									<Typography variant="h6" gutterBottom>
+										OCR 결과
+									</Typography>
+									<Box sx={{ mb: 3 }}>
+                    <pre style={{
+	                    backgroundColor: '#f5f5f5',
+	                    padding: '16px',
+	                    borderRadius: '4px',
+	                    fontSize: '14px',
+	                    overflow: 'auto'
+                    }}>
+                      {JSON.stringify(assetDetail.ocr_results, null, 2)}
+                    </pre>
+									</Box>
+								</>
+							)}
+						</Box>
+					) : (
+						<Typography>상세 정보를 불러오는 중...</Typography>
+					)}
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setDetailDialog(false)}>
+						닫기
+					</Button>
+				</DialogActions>
+			</Dialog>
+		</Box>
+	);
 };
 
 export default AssetList;

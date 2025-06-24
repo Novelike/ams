@@ -1,0 +1,15 @@
+.\if (ocrResults && ocrResults.results) {
+console.log('✅ OCR 결과 처리 시작');
+console.log('📊 OCR 결과 구조:', ocrResults);
+console.log('📊 OCR results 타입:', typeof ocrResults.results);
+console.log('📊 OCR results 키들:', Object.keys(ocrResults.results));
+console.log('📊 OCR results 키 개수:', Object.keys(ocrResults.results).length);
+
+// 새로운 분석 함수 사용
+console.log('📊 analyzeOCRResults 함수 호출 중...');
+const textData = analyzeOCRResults(ocrResults.results, ocrResults.confidence || {});
+console.log('📋 분석된 OCR 데이터:', textData);
+console.log('📋 분석된 데이터 개수:', textData.length);
+console.log('🔄 setEditableOcrData 호출 중...');
+setEditableOcrData(textData);
+console.log('✅ setEditableOcrData 호출 완료');

@@ -1,0 +1,12 @@
+# data/asset_labels.yaml
+
+train: ../datasets/asset/train/images
+val: ../datasets/asset/val/images
+
+nc: 3
+
+# ★ 리스트 형식으로 변경합니다!
+names:
+    - model_name
+    - serial_number
+    - manufacturer

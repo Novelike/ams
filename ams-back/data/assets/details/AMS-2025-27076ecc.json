@@ -1,0 +1,28 @@
+{
+  "basic_info": {
+    "asset_number": "AMS-2025-27076ecc",
+    "model_name": "Dell XPS 15",
+    "serial_number": "DL789012",
+    "manufacturer": "Dell",
+    "site": "부산지사",
+    "asset_type": "laptop",
+    "user": "김철수",
+    "registration_date": "2025-06-24T02:04:35.204515"
+  },
+  "specs": {
+    "cpu": "Intel i7-12700H",
+    "memory": "32GB DDR5",
+    "storage": "1TB SSD",
+    "display": "15.6인치 4K OLED"
+  },
+  "ocr_results": {
+    "model": "Dell XPS 15",
+    "serial": "DL789012",
+    "manufacturer": "Dell"
+  },
+  "metadata": {
+    "image_path": null,
+    "segmentation_results": null,
+    "processing_timestamp": "2025-06-24T02:04:35.204515"
+  }
+}

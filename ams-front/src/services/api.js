@@ -8,7 +8,7 @@ const api = axios.create({
   },
 });
 
-// Add a request interceptor for authentication if needed
+// Add a request interceptor for authentication
 api.interceptors.request.use(
   (config) => {
     // You can add auth token here if needed
@@ -44,40 +44,40 @@ export const assetApi = {
       page_size: pageSize,
       ...filters,
     };
-    
+
     if (sortBy) {
       params.sort_by = sortBy;
       params.sort_desc = sortDesc;
     }
-    
+
     const response = await api.get('/api/assets/list', { params });
     return response.data;
   },
-  
+
   // Get asset by ID
   getAssetById: async (id) => {
     const response = await api.get(`/api/assets/list/${id}`);
     return response.data;
   },
-  
+
   // Search assets
   searchAssets: async (query) => {
     const response = await api.get(`/api/assets/list/search/${query}`);
     return response.data;
   },
-  
+
   // Get assets by site
   getAssetsBySite: async (site) => {
     const response = await api.get(`/api/assets/list/site/${site}`);
     return response.data;
   },
-  
+
   // Get assets by type
   getAssetsByType: async (type) => {
     const response = await api.get(`/api/assets/list/type/${type}`);
     return response.data;
   },
-  
+
   // Get assets by user
   getAssetsByUser: async (user) => {
     const response = await api.get(`/api/assets/list/user/${user}`);
@@ -88,49 +88,84 @@ export const assetApi = {
 // Registration API functions
 export const registrationApi = {
   // Upload image
-  uploadImage: async (file) => {
+  uploadImage: async (file, onUploadProgress = null) => {
     const formData = new FormData();
     formData.append('file', file);
-    
-    const response = await api.post('/api/registration/upload', formData, {
+
+    const config = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-    });
+    };
+
+    // Add upload progress callback if provided
+    if (onUploadProgress) {
+      config.onUploadProgress = onUploadProgress;
+    }
+
+    const response = await api.post('/api/registration/upload', formData, config);
     return response.data;
   },
-  
+
   // Segment image
-  segmentImage: async (imagePath) => {
-    const response = await api.post('/api/registration/segment', { image_path: imagePath });
+  segmentImage: async (imagePath, onDownloadProgress = null) => {
+    const config = {};
+
+    // Add download progress callback if provided
+    if (onDownloadProgress) {
+      config.onDownloadProgress = onDownloadProgress;
+    }
+
+    const response = await api.post('/api/registration/segment', { image_path: imagePath }, config);
     return response.data;
   },
-  
+
   // Perform OCR
-  performOcr: async (imagePath, segments = null) => {
+  performOcr: async (imagePath, segments = null, onDownloadProgress = null) => {
+    const config = {};
+
+    // Add download progress callback if provided
+    if (onDownloadProgress) {
+      config.onDownloadProgress = onDownloadProgress;
+    }
+
     const response = await api.post('/api/registration/ocr', { 
       image_path: imagePath,
       segments
-    });
+    }, config);
     return response.data;
   },
-  
+
   // Register asset
-  registerAsset: async (assetData) => {
-    const response = await api.post('/api/registration/register', assetData);
+  registerAsset: async (assetData, onDownloadProgress = null) => {
+    const config = {};
+
+    // Add download progress callback if provided
+    if (onDownloadProgress) {
+      config.onDownloadProgress = onDownloadProgress;
+    }
+
+    const response = await api.post('/api/registration/register', assetData, config);
     return response.data;
   },
-  
+
   // Get chatbot assistance
-  getChatbotAssistance: async (ocrResults = null, modelName = null, serialNumber = null) => {
+  getChatbotAssistance: async (ocrResults = null, modelName = null, serialNumber = null, onDownloadProgress = null) => {
+    const config = {};
+
+    // Add download progress callback if provided
+    if (onDownloadProgress) {
+      config.onDownloadProgress = onDownloadProgress;
+    }
+
     const response = await api.post('/api/registration/chatbot-assist', {
       ocr_results: ocrResults,
       model_name: modelName,
       serial_number: serialNumber
-    });
+    }, config);
     return response.data;
   },
-  
+
   // Get registration workflow
   getWorkflow: async () => {
     const response = await api.get('/api/registration/workflow');
@@ -145,13 +180,13 @@ export const dashboardApi = {
     const response = await api.get('/api/dashboard/stats');
     return response.data;
   },
-  
+
   // Get site assets
   getSiteAssets: async () => {
     const response = await api.get('/api/dashboard/site-assets');
     return response.data;
   },
-  
+
   // Get chart data
   getChartData: async () => {
     const response = await api.get('/api/dashboard/chart-data');
@@ -166,19 +201,19 @@ export const chatbotApi = {
     const response = await api.post('/api/chatbot/send', message);
     return response.data;
   },
-  
+
   // Get chat history
   getHistory: async () => {
     const response = await api.get('/api/chatbot/history');
     return response.data;
   },
-  
+
   // Clear chat history
   clearHistory: async () => {
     const response = await api.delete('/api/chatbot/history');
     return response.data;
   },
-  
+
   // Get asset assistance
   getAssetAssistance: async (modelName = null, serialNumber = null, manufacturer = null) => {
     const response = await api.post('/api/chatbot/asset-assist', {
@@ -197,31 +232,31 @@ export const labelApi = {
     const response = await api.get('/api/labels');
     return response.data;
   },
-  
+
   // Get label by ID
   getLabelById: async (id) => {
     const response = await api.get(`/api/labels/${id}`);
     return response.data;
   },
-  
+
   // Create label
   createLabel: async (labelData) => {
     const response = await api.post('/api/labels', labelData);
     return response.data;
   },
-  
+
   // Update label
   updateLabel: async (id, labelData) => {
     const response = await api.put(`/api/labels/${id}`, labelData);
     return response.data;
   },
-  
+
   // Delete label
   deleteLabel: async (id) => {
     const response = await api.delete(`/api/labels/${id}`);
     return response.data;
   },
-  
+
   // Download label
   downloadLabel: async (id) => {
     const response = await api.get(`/api/labels/${id}/download`, {
@@ -229,19 +264,19 @@ export const labelApi = {
     });
     return response.data;
   },
-  
+
   // Print label
   printLabel: async (id) => {
     const response = await api.post(`/api/labels/${id}/print`);
     return response.data;
   },
-  
+
   // Get label by asset ID
   getLabelByAssetId: async (assetId) => {
     const response = await api.get(`/api/labels/asset/${assetId}`);
     return response.data;
   },
-  
+
   // Batch print labels
   batchPrintLabels: async (assetIds) => {
     const response = await api.get('/api/labels/batch/print', {

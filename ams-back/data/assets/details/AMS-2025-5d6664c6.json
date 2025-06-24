@@ -1,0 +1,28 @@
+{
+  "basic_info": {
+    "asset_number": "AMS-2025-5d6664c6",
+    "model_name": "ThinkPad X1 Carbon",
+    "serial_number": "PC123456",
+    "manufacturer": "Lenovo",
+    "site": "서울본사",
+    "asset_type": "laptop",
+    "user": "홍길동",
+    "registration_date": "2025-06-24T02:04:33.172428"
+  },
+  "specs": {
+    "cpu": "Intel i7-1165G7",
+    "memory": "16GB LPDDR4X",
+    "storage": "512GB SSD",
+    "display": "14인치 WQHD"
+  },
+  "ocr_results": {
+    "model": "ThinkPad X1 Carbon",
+    "serial": "PC123456",
+    "manufacturer": "Lenovo"
+  },
+  "metadata": {
+    "image_path": null,
+    "segmentation_results": null,
+    "processing_timestamp": "2025-06-24T02:04:33.173525"
+  }
+}
