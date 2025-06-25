@@ -280,12 +280,13 @@ jobs:
         python deployment/test_deployment.py --environment=development
         
     - name: Notify deployment status
-      if: always()
+      if: always() && secrets.SLACK_WEBHOOK_URL != ''
       uses: 8398a7/action-slack@v3
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       with:
         status: ${{ job.status }}
         channel: '#deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
 
   # 프로덕션 배포 (Blue-Green)
   deploy-prod:
@@ -343,12 +344,13 @@ jobs:
         python deployment/emergency_rollback.py
         
     - name: Notify deployment status
-      if: always()
+      if: always() && secrets.SLACK_WEBHOOK_URL != ''
       uses: 8398a7/action-slack@v3
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       with:
         status: ${{ job.status }}
         channel: '#deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
         fields: repo,message,commit,author,action,eventName,ref,workflow
 
   # 성능 테스트
@@ -389,28 +391,28 @@ jobs:
     name: Setup Monitoring
     runs-on: ubuntu-latest
     needs: deploy-prod
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.GRAFANA_API_KEY != '' && secrets.PROMETHEUS_URL != ''
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Configure monitoring alerts
-      env:
-        GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
-        PROMETHEUS_URL: ${{ secrets.PROMETHEUS_URL }}
-      run: |
-        python deployment/setup_monitoring.py
-        
-    - name: Test monitoring endpoints
-      run: |
-        python deployment/test_monitoring.py
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure monitoring alerts
+        env:
+          GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
+          PROMETHEUS_URL: ${{ secrets.PROMETHEUS_URL }}
+        run: |
+          python deployment/setup_monitoring.py
+
+      - name: Test monitoring endpoints
+        run: |
+          python deployment/test_monitoring.py
 
   # 정리 작업
   cleanup:
     name: Cleanup
     runs-on: ubuntu-latest
-    needs: [deploy-prod, performance-test, setup-monitoring]
+    needs: [deploy-prod, performance-test]
     if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     
     steps:
