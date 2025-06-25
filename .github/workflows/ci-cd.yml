@@ -162,6 +162,8 @@ jobs:
     - name: Run Phase 3 GPU tests
       run: |
         cd ams-back
+        python -m pip install --upgrade pip
+        pip install aiohttp
         python scripts/test_phase3_gpu.py || true
 
   # 보안 스캔
@@ -326,6 +328,7 @@ jobs:
 
     - name: Blue-Green deployment
       env:
+        DEPLOYMENT_MODE: production  # 실제 배포 모드
         BASTION_HOST: ${{ secrets.BASTION_HOST }}
         BACKEND_HOST: ${{ secrets.BACKEND_HOST }}
         SSH_USER: ${{ secrets.SSH_USER }}

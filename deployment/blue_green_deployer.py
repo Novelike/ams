@@ -159,14 +159,114 @@ class BlueGreenDeployer:
             self.active_environment = DeploymentEnvironment.BLUE
             self.standby_environment = DeploymentEnvironment.GREEN
 
+    async def _detect_initial_deployment(self) -> bool:
+        """최초 배포인지 확인"""
+        try:
+            # Blue, Green 환경 모두 확인
+            blue_exists = await self._check_environment_exists(DeploymentEnvironment.BLUE)
+            green_exists = await self._check_environment_exists(DeploymentEnvironment.GREEN)
+
+            return not (blue_exists or green_exists)
+        except Exception as e:
+            logger.warning(f"환경 감지 실패, 최초 배포로 간주: {e}")
+            return True
+
+    async def _check_environment_exists(self, environment: DeploymentEnvironment) -> bool:
+        """환경이 존재하는지 확인"""
+        try:
+            env_config = self._get_environment_config(environment)
+
+            # 서비스 상태 확인
+            check_command = f"systemctl is-active {env_config.service_name} || echo 'inactive'"
+            result = await self.ssh_manager.execute_command(check_command)
+
+            if result.success and "active" in result.stdout:
+                logger.info(f"{environment.value} 환경이 실행 중입니다")
+                return True
+            else:
+                logger.info(f"{environment.value} 환경이 비활성 상태입니다")
+                return False
+
+        except Exception as e:
+            logger.warning(f"{environment.value} 환경 확인 실패: {e}")
+            return False
+
+    async def _initial_deployment(self, branch: str) -> DeploymentResult:
+        """최초 배포 실행"""
+        start_time = time.time()
+        logger.info("최초 배포를 시작합니다")
+
+        try:
+            self.current_status = DeploymentStatus.PREPARING
+
+            # Blue 환경에 직접 배포
+            logger.info("Blue 환경에 최초 배포 중...")
+            await self._deploy_to_environment(DeploymentEnvironment.BLUE, branch)
+
+            # 헬스 체크
+            self.current_status = DeploymentStatus.TESTING
+            if not await self._health_check_environment(DeploymentEnvironment.BLUE):
+                raise Exception("Initial deployment health check failed")
+
+            # Nginx 설정
+            await self._configure_nginx_for_environment(DeploymentEnvironment.BLUE)
+
+            # 환경 설정 업데이트
+            self.active_environment = DeploymentEnvironment.BLUE
+            self.standby_environment = DeploymentEnvironment.GREEN
+
+            deployment_time = time.time() - start_time
+
+            # 통계 업데이트
+            await self._update_deployment_stats(True, deployment_time)
+
+            self.current_status = DeploymentStatus.COMPLETED
+
+            result = DeploymentResult(
+                success=True,
+                environment=DeploymentEnvironment.BLUE,
+                version=branch,
+                deployment_time=deployment_time,
+                status=self.current_status
+            )
+
+            logger.info(f"최초 배포가 성공적으로 완료되었습니다 ({deployment_time:.2f}s)")
+            self.current_status = DeploymentStatus.IDLE
+
+            return result
+
+        except Exception as e:
+            logger.error(f"최초 배포 실패: {e}")
+            deployment_time = time.time() - start_time
+            await self._update_deployment_stats(False, deployment_time)
+
+            self.current_status = DeploymentStatus.FAILED
+
+            return DeploymentResult(
+                success=False,
+                environment=DeploymentEnvironment.BLUE,
+                version=branch,
+                deployment_time=deployment_time,
+                status=self.current_status,
+                error_message=str(e)
+            )
+
     async def deploy(self, branch: str = "main", force: bool = False) -> DeploymentResult:
-        """Blue-Green 배포 실행"""
+        """배포 실행 (최초 배포 고려)"""
         start_time = time.time()
 
         try:
             if self.current_status != DeploymentStatus.IDLE and not force:
                 raise Exception(f"Deployment already in progress: {self.current_status.value}")
 
+            # 최초 배포 감지
+            is_initial = await self._detect_initial_deployment()
+
+            if is_initial:
+                logger.info("최초 배포가 감지되었습니다")
+                return await self._initial_deployment(branch)
+
+            # 기존 Blue-Green 배포 로직
             self.current_status = DeploymentStatus.PREPARING
 
             logger.info(f"Starting Blue-Green deployment (branch: {branch})")

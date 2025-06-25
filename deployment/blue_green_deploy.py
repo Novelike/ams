@@ -124,8 +124,18 @@ class BlueGreenDeploymentCLI:
             # Create deployment configuration
             config = self.create_deployment_config()
 
-            # In GitHub Actions environment, we simulate the deployment
-            if self.is_github_actions or platform.system() == "Windows" or BlueGreenDeployer is None:
+            # 배포 모드 결정
+            deployment_mode = os.getenv("DEPLOYMENT_MODE", "auto")
+
+            # 시뮬레이션 조건을 더 명확하게 구분
+            is_simulation = (
+                deployment_mode == "simulation" or
+                (not self.is_github_actions and platform.system() == "Windows") or
+                BlueGreenDeployer is None
+            )
+
+            # 시뮬레이션 모드 실행
+            if is_simulation:
                 self.log_info("GitHub Actions/Windows 환경에서는 배포를 시뮬레이션합니다")
 
                 # Simulate deployment steps
