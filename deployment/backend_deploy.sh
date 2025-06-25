@@ -36,15 +36,22 @@ SERVICE_NAME="ams-backend"
 
 log_info "🚀 AMS 백엔드 배포 시작 - 브랜치: $BRANCH"
 
-# 1. 백업 생성
-log_info "📦 백업 생성 중..."
-if [ -d "$BACKEND_DIR" ]; then
-    cp -r "$BACKEND_DIR" "$BACKEND_DIR.backup.$TIMESTAMP"
-    log_success "백업 생성 완료: $BACKEND_DIR.backup.$TIMESTAMP"
+# 1. 빠른 배포 전 체크
+log_info "⚡ 빠른 배포 전 체크..."
+DISK_USAGE=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+log_info "현재 디스크 사용량: ${DISK_USAGE}%"
+
+if [ $DISK_USAGE -gt 90 ]; then
+    log_warning "디스크 사용량이 90% 초과, 긴급 정리 실행..."
+    pip cache purge || true
+    sudo rm -rf /tmp/pip-* /tmp/tmp* || true
+    log_success "긴급 정리 완료"
+else
+    log_success "디스크 공간 충분, 정리 건너뜀"
 fi
 
-# 2. 백엔드 소스만 업데이트
-log_info "📥 백엔드 소스 업데이트 중..."
+# 2. 백엔드 소스 업데이트 (백업 없이)
+log_info "📥 백엔드 소스 업데이트 중 (백업 없이 빠른 배포)..."
 cd "$BACKEND_DIR"
 
 # Sparse checkout으로 ams-back만 가져오기
@@ -55,8 +62,17 @@ cd temp-repo
 git sparse-checkout set ams-back
 git checkout "$BRANCH"
 
-# 백엔드 소스 복사
-rsync -av --delete --ignore-missing-args ams-back/ "$BACKEND_DIR/" || {
+# 중요 파일들 보존
+cd "$BACKEND_DIR"
+if [ -f ".env" ]; then
+    cp .env .env.backup
+fi
+
+# 백엔드 소스 복사 (venv와 .env 제외)
+rsync -av --delete --ignore-missing-args \
+    --exclude='venv/' \
+    --exclude='.env' \
+    "$TEMP_DIR/temp-repo/ams-back/" ./ || {
     exit_code=$?
     if [ $exit_code -eq 24 ]; then
         log_warning "rsync warning: some files vanished during transfer (exit code 24) - continuing deployment"
@@ -65,10 +81,14 @@ rsync -av --delete --ignore-missing-args ams-back/ "$BACKEND_DIR/" || {
         exit $exit_code
     fi
 }
-cd "$BACKEND_DIR"
-rm -rf "$TEMP_DIR"
 
-log_success "백엔드 소스 업데이트 완료"
+# .env 복원
+if [ -f ".env.backup" ]; then
+    mv .env.backup .env
+fi
+
+rm -rf "$TEMP_DIR"
+log_success "백엔드 소스 업데이트 완료 (백업 없이)"
 
 # 3. 환경 설정
 log_info "⚙️ 환경 설정 중..."
@@ -81,86 +101,113 @@ EOF
 
 log_success "환경 변수 설정 완료"
 
-# 4. 디스크 공간 정리
-log_info "🧹 배포 전 디스크 공간 정리 중..."
-# pip 캐시 정리
-pip cache purge || true
-# 임시 파일 정리
-sudo rm -rf /tmp/pip-* /tmp/tmp* || true
-# 오래된 백업 정리 (1일 이상)
-find "$HOME" -name "ams-back.backup.*" -type d -mtime +1 -exec rm -rf {} + || true
-log_success "사전 정리 완료"
+# 4. 스마트 의존성 체크
+log_info "🔍 의존성 변경 확인 중..."
 
-# 5. 가상환경 활성화 및 의존성 설치 (최적화)
-log_info "📦 의존성 설치 중 (캐시 최적화)..."
+NEED_INSTALL=false
+
+# 가상환경 존재 확인
 if [ ! -d "venv" ]; then
-    log_info "가상환경 생성 중..."
-    python3 -m venv venv
+    log_info "가상환경이 없습니다. 새로 생성합니다."
+    NEED_INSTALL=true
+else
+    log_success "기존 가상환경 발견"
+
+    # requirements.txt 변경 확인
+    if [ -f "requirements.txt.last" ]; then
+        if cmp -s requirements.txt requirements.txt.last; then
+            log_success "requirements.txt 변경 없음 - 의존성 설치 건너뜀"
+            NEED_INSTALL=false
+        else
+            log_info "requirements.txt 변경 감지 - 의존성 재설치 필요"
+            NEED_INSTALL=true
+        fi
+    else
+        log_info "첫 배포 또는 이전 기록 없음 - 의존성 설치 필요"
+        NEED_INSTALL=true
+    fi
 fi
 
-source venv/bin/activate
+# 5. 조건부 의존성 설치
+if [ "$NEED_INSTALL" = true ]; then
+    log_info "📦 의존성 설치 시작..."
 
-# pip 캐시 정리 후 최적화된 설치
-pip cache purge
-pip install --upgrade pip --no-cache-dir
+    # 가상환경 생성 또는 정리
+    if [ ! -d "venv" ]; then
+        log_info "가상환경 생성 중..."
+        python3 -m venv venv
+    else
+        log_info "기존 가상환경 정리 중..."
+        rm -rf venv
+        python3 -m venv venv
+    fi
 
-# 임시 캐시 디렉토리 사용하여 설치
-pip install -r requirements.txt \
-    --cache-dir /tmp/pip-cache \
-    --no-warn-script-location
+    source venv/bin/activate
 
-# 임시 캐시 즉시 정리
-rm -rf /tmp/pip-cache
+    # pip 업그레이드 및 의존성 설치
+    log_info "pip 업그레이드 중..."
+    pip install --upgrade pip --no-cache-dir
 
-log_success "의존성 설치 완료"
+    log_info "의존성 설치 중..."
+    pip install -r requirements.txt --no-cache-dir --no-warn-script-location
+
+    # requirements.txt 백업 (다음 배포 시 비교용)
+    cp requirements.txt requirements.txt.last
+
+    log_success "의존성 설치 완료"
+else
+    log_success "의존성 설치 건너뜀 - 기존 환경 재사용"
+    source venv/bin/activate
+fi
 
 # 5. 서비스 재시작
 log_info "🔄 서비스 재시작 중..."
 sudo systemctl restart $SERVICE_NAME
 sleep 5
 
-# 6. 헬스 체크
-log_info "🏥 헬스 체크 수행 중..."
-for i in {1..10}; do
+# 6. 빠른 헬스 체크
+log_info "🏥 빠른 헬스 체크 중..."
+for i in {1..5}; do
     if curl -f http://localhost:8000/api/health > /dev/null 2>&1; then
-        log_success "헬스 체크 성공"
+        log_success "헬스 체크 성공 (${i}회 시도)"
         break
     fi
-    if [ $i -eq 10 ]; then
-        log_error "헬스 체크 실패"
+    if [ $i -eq 5 ]; then
+        log_error "헬스 체크 실패 (5회 시도 후)"
 
-        # 롤백 수행
-        log_warning "롤백 수행 중..."
-        if [ -d "$BACKEND_DIR.backup.$TIMESTAMP" ]; then
-            rsync -av --delete --ignore-missing-args "$BACKEND_DIR.backup.$TIMESTAMP/" "$BACKEND_DIR/" || {
-                exit_code=$?
-                if [ $exit_code -eq 24 ]; then
-                    log_warning "rsync warning during rollback: some files vanished during transfer (exit code 24) - continuing rollback"
-                else
-                    log_error "rsync rollback failed with exit code $exit_code"
-                    exit $exit_code
-                fi
-            }
-            if [ ! -d "venv" ]; then
-                log_info "롤백용 가상환경 생성 중..."
-                python3 -m venv venv
+        # 간단 롤백 (서비스 재시작만)
+        log_warning "간단 롤백 수행 중 (서비스 재시작)..."
+
+        # 서비스 상태 확인
+        log_info "현재 서비스 상태:"
+        sudo systemctl status $SERVICE_NAME --no-pager || true
+
+        # 서비스 재시작 시도
+        log_info "서비스 재시작 중..."
+        sudo systemctl restart $SERVICE_NAME
+        sleep 3
+
+        # 간단한 헬스 체크
+        log_info "롤백 후 헬스 체크..."
+        for j in {1..3}; do
+            if curl -f http://localhost:8000/api/health > /dev/null 2>&1; then
+                log_success "롤백 후 서비스 정상 (${j}회 시도)"
+                break
             fi
-            source venv/bin/activate
-
-            # 롤백 후 필요시 의존성 재설치
-            if [ -f "requirements.txt" ]; then
-                log_info "롤백 후 의존성 재설치 중..."
-                pip install --upgrade pip --no-cache-dir
-                pip install -r requirements.txt --cache-dir /tmp/pip-cache --no-warn-script-location
-                rm -rf /tmp/pip-cache
+            if [ $j -eq 3 ]; then
+                log_error "롤백 후에도 서비스 문제 지속"
+                log_info "서비스 로그 확인:"
+                sudo journalctl -u $SERVICE_NAME --since "5 minutes ago" --no-pager | tail -20
+                exit 1
             fi
+            sleep 2
+        done
 
-            sudo systemctl restart $SERVICE_NAME
-            log_success "롤백 완료"
-        fi
+        log_success "간단 롤백 완료"
         exit 1
     fi
-    sleep 3
+    log_info "헬스 체크 재시도 중... (${i}/5)"
+    sleep 2
 done
 
 # 7. 서비스 상태 확인
@@ -178,33 +225,16 @@ fi
 log_success "🎉 백엔드 배포 완료!"
 log_info "🌐 서비스 URL: https://ams-api.novelike.dev"
 
-# 9. 배포 후 디스크 공간 정리
-log_info "🧹 배포 후 디스크 공간 정리 중..."
+# 9. 간단한 배포 후 정리
+log_info "🧹 간단한 정리 중..."
 
-# pip 캐시 정리
+# 필수 정리만 수행 (pip 캐시만)
 pip cache purge || true
-
-# 임시 파일 정리
-sudo rm -rf /tmp/pip-* /tmp/tmp* || true
-
-# 오래된 백업 정리 (3일 이상으로 단축)
-find "$HOME" -name "ams-back.backup.*" -type d -mtime +3 -exec rm -rf {} + || true
-
-# 최종 디스크 사용량 확인
-echo "최종 디스크 사용량:"
-df -h
-
-# 디렉토리별 사용량 확인
-echo "홈 디렉토리 사용량:"
-du -h --max-depth=1 "$HOME" | sort -hr | head -10
 
 log_success "정리 완료"
 
-# 10. 배포 정보 출력
-log_info "📋 배포 정보:"
+# 10. 배포 완료 정보
+log_info "📋 배포 완료:"
 echo "  - 브랜치: $BRANCH"
 echo "  - 시간: $(date)"
-echo "  - 백업: $BACKEND_DIR.backup.$TIMESTAMP"
 echo "  - 서비스: $SERVICE_NAME"
-echo "  - 포트: 8000"
-echo "  - 디스크 사용량: $(df -h / | awk 'NR==2{print $5}')"

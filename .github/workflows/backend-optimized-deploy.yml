@@ -72,24 +72,22 @@ jobs:
         working-directory: /home/ubuntu/ams-back
 
     steps:
-      - name: Cleanup disk space before deployment
+      - name: Quick Pre-deployment Check
         run: |
-          echo "🧹 배포 전 디스크 공간 정리..."
+          echo "⚡ 빠른 배포 전 체크..."
 
-          # pip 캐시 정리
-          pip cache purge || true
+          # 디스크 사용량 확인만 (정리는 필요시에만)
+          DISK_USAGE=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+          echo "현재 디스크 사용량: ${DISK_USAGE}%"
 
-          # 임시 파일 정리
-          rm -rf /tmp/pip-* || true
-          rm -rf /tmp/tmp* || true
-
-          # 오래된 백업 정리 (1일 이상)
-          find /home/ubuntu -name "ams-back.backup.*" -type d -mtime +1 -exec rm -rf {} + || true
-
-          # 현재 디스크 사용량 확인
-          echo "현재 디스크 사용량:"
-          df -h
-          echo "✅ 사전 정리 완료"
+          if [ $DISK_USAGE -gt 90 ]; then
+            echo "⚠️ 디스크 사용량이 90% 초과, 긴급 정리 실행..."
+            pip cache purge || true
+            rm -rf /tmp/pip-* /tmp/tmp* || true
+            echo "✅ 긴급 정리 완료"
+          else
+            echo "✅ 디스크 공간 충분, 정리 건너뜀"
+          fi
 
       - name: Ensure working directory exists
         run: |
@@ -100,32 +98,35 @@ jobs:
           echo "디렉토리 내용:"
           ls -la || echo "디렉토리가 비어있습니다"
 
-      - name: Sync backend source
+      - name: Sync backend source (No Backup)
         run: |
-          echo "🚀 백엔드 소스 동기화 시작..."
+          echo "🚀 백엔드 소스 동기화 시작 (백업 없이 빠른 배포)..."
           echo "현재 작업 디렉토리: $(pwd)"
 
-          # 백업 생성
-          if [ -d "backup" ]; then
-            rm -rf backup
-          fi
-          mkdir -p backup
-          cp -r . backup/ 2>/dev/null || true
-
           # GitHub에서 최신 ams-back 소스만 가져오기
+          echo "📥 GitHub에서 소스 다운로드 중..."
           curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                -H "Accept: application/vnd.github.v3.raw" \
                -L "https://api.github.com/repos/${{ github.repository }}/tarball/${{ github.ref_name }}" \
                -o source.tar.gz
 
           # 임시 디렉토리에 압축 해제
+          echo "📦 소스 압축 해제 중..."
           mkdir -p temp_source
           tar -xzf source.tar.gz -C temp_source --strip-components=1
 
-          # ams-back 내용만 현재 디렉토리로 복사
+          # ams-back 내용만 현재 디렉토리로 복사 (백업 없이)
           if [ -d "temp_source/ams-back" ]; then
-            echo "📁 ams-back 디렉토리 발견, 내용을 복사합니다..."
-            rsync -av --delete --ignore-missing-args temp_source/ams-back/ ./ || {
+            echo "📁 ams-back 소스 복사 중..."
+            # 중요 파일들만 보존 (venv, .env)
+            if [ -f ".env" ]; then
+              cp .env .env.backup
+            fi
+
+            rsync -av --delete --ignore-missing-args \
+              --exclude='venv/' \
+              --exclude='.env' \
+              temp_source/ams-back/ ./ || {
               exit_code=$?
               if [ $exit_code -eq 24 ]; then
                 echo "⚠️ rsync warning: some files vanished during transfer (exit code 24) - continuing deployment"
@@ -134,6 +135,11 @@ jobs:
                 exit $exit_code
               fi
             }
+
+            # .env 복원
+            if [ -f ".env.backup" ]; then
+              mv .env.backup .env
+            fi
           else
             echo "❌ temp_source/ams-back 디렉토리를 찾을 수 없습니다"
             echo "사용 가능한 디렉토리:"
@@ -145,54 +151,90 @@ jobs:
           rm -rf temp_source source.tar.gz
 
           # 결과 확인
-          echo "✅ 소스 동기화 완료"
-          echo "현재 디렉토리 내용:"
-          ls -la
+          echo "✅ 소스 동기화 완료 (백업 없이)"
           echo "requirements.txt 존재 확인:"
           if [ -f "requirements.txt" ]; then
             echo "✅ requirements.txt 파일 존재"
-            head -5 requirements.txt
           else
             echo "❌ requirements.txt 파일이 없습니다"
             exit 1
           fi
 
-      - name: Deploy application
+      - name: Smart Dependencies Check
         run: |
-          echo "🚀 애플리케이션 배포 시작..."
-          echo "현재 작업 디렉토리: $(pwd)"
+          echo "🔍 의존성 변경 확인 중..."
 
-          # requirements.txt 재확인
+          # requirements.txt 확인
           if [ ! -f "requirements.txt" ]; then
             echo "❌ requirements.txt 파일이 없습니다. 배포를 중단합니다."
             exit 1
           fi
 
-          # 1. 가상환경 생성 및 활성화
+          # 가상환경 존재 확인
           if [ ! -d "venv" ]; then
-            echo "📦 가상환경 생성 중..."
+            echo "📦 가상환경이 없습니다. 새로 생성합니다."
+            echo "NEED_INSTALL=true" >> $GITHUB_ENV
+          else
+            echo "✅ 기존 가상환경 발견"
+
+            # requirements.txt 변경 확인
+            if [ -f "requirements.txt.last" ]; then
+              if cmp -s requirements.txt requirements.txt.last; then
+                echo "✅ requirements.txt 변경 없음 - 의존성 설치 건너뜀"
+                echo "NEED_INSTALL=false" >> $GITHUB_ENV
+              else
+                echo "📝 requirements.txt 변경 감지 - 의존성 재설치 필요"
+                echo "NEED_INSTALL=true" >> $GITHUB_ENV
+              fi
+            else
+              echo "📝 첫 배포 또는 이전 기록 없음 - 의존성 설치 필요"
+              echo "NEED_INSTALL=true" >> $GITHUB_ENV
+            fi
+          fi
+
+      - name: Install Dependencies (Conditional)
+        if: env.NEED_INSTALL == 'true'
+        run: |
+          echo "📦 의존성 설치 시작..."
+
+          # 가상환경 생성 또는 정리
+          if [ ! -d "venv" ]; then
+            echo "🔧 가상환경 생성 중..."
+            python3 -m venv venv
+          else
+            echo "🔧 기존 가상환경 정리 중..."
+            rm -rf venv
             python3 -m venv venv
           fi
+
           source venv/bin/activate
 
-          # 2. 의존성 설치 (최적화된 방식)
-          echo "📦 의존성 설치 중 (캐시 최적화)..."
-
-          # pip 캐시 정리 후 설치
-          pip cache purge
+          # pip 업그레이드 및 의존성 설치
+          echo "⬆️ pip 업그레이드 중..."
           pip install --upgrade pip --no-cache-dir
 
-          # 임시 캐시 디렉토리 사용하여 설치
-          pip install -r requirements.txt \
-            --cache-dir /tmp/pip-cache \
-            --no-warn-script-location
+          echo "📥 의존성 설치 중..."
+          pip install -r requirements.txt --no-cache-dir --no-warn-script-location
 
-          # 임시 캐시 즉시 정리
-          rm -rf /tmp/pip-cache
+          # requirements.txt 백업 (다음 배포 시 비교용)
+          cp requirements.txt requirements.txt.last
 
           echo "✅ 의존성 설치 완료"
 
-          # 3. 환경 변수 설정
+      - name: Deploy Application (Fast)
+        run: |
+          echo "🚀 애플리케이션 배포 시작 (빠른 모드)..."
+          echo "현재 작업 디렉토리: $(pwd)"
+
+          # 가상환경 활성화
+          if [ ! -d "venv" ]; then
+            echo "❌ 가상환경이 없습니다. 이전 단계에서 문제가 발생했습니다."
+            exit 1
+          fi
+          source venv/bin/activate
+
+          # 환경 변수 설정
+          echo "⚙️ 환경 변수 설정 중..."
           cat > .env << 'EOF'
           ENVIRONMENT=production
           PORT=8000
@@ -200,73 +242,73 @@ jobs:
           PROD_SERVER_IP=10.0.3.203
           EOF
 
-          # 4. 서비스 재시작
+          # 서비스 재시작
+          echo "🔄 서비스 재시작 중..."
           sudo systemctl restart ams-backend
-          sleep 5
+          sleep 3
 
-          # 5. 헬스 체크
-          for i in {1..10}; do
+          # 빠른 헬스 체크 (5회로 단축)
+          echo "🏥 헬스 체크 중..."
+          for i in {1..5}; do
             if curl -f http://localhost:8000/api/health; then
-              echo "✅ 헬스 체크 성공"
+              echo "✅ 헬스 체크 성공 (${i}회 시도)"
               break
             fi
-            if [ $i -eq 10 ]; then
-              echo "❌ 헬스 체크 실패"
+            if [ $i -eq 5 ]; then
+              echo "❌ 헬스 체크 실패 (5회 시도 후)"
               exit 1
             fi
-            sleep 3
+            echo "⏳ 헬스 체크 재시도 중... (${i}/5)"
+            sleep 2
           done
 
-          echo "🎉 배포 완료!"
+          echo "🎉 빠른 배포 완료!"
 
-      - name: Rollback on failure
+      - name: Simple Rollback (Service Restart)
         if: failure()
         run: |
-          echo "🔄 롤백 시작..."
-          if [ -d "backup" ]; then
-            rsync -av --delete --ignore-missing-args backup/ ./ || {
-              exit_code=$?
-              if [ $exit_code -eq 24 ]; then
-                echo "⚠️ rsync warning during rollback: some files vanished during transfer (exit code 24) - continuing rollback"
-              else
-                echo "❌ rsync rollback failed with exit code $exit_code"
-                exit $exit_code
-              fi
-            }
-            if [ ! -d "venv" ]; then
-              echo "📦 롤백용 가상환경 생성 중..."
-              python3 -m venv venv
-            fi
-            source venv/bin/activate
-            sudo systemctl restart ams-backend
-            echo "✅ 롤백 완료"
-          fi
+          echo "🔄 간단 롤백 시작 (서비스 재시작)..."
 
-      - name: Cleanup disk space after deployment
+          # 서비스 상태 확인
+          echo "📊 현재 서비스 상태:"
+          sudo systemctl status ams-backend --no-pager || true
+
+          # 서비스 재시작 시도
+          echo "🔄 서비스 재시작 중..."
+          sudo systemctl restart ams-backend
+          sleep 3
+
+          # 간단한 헬스 체크
+          echo "🏥 롤백 후 헬스 체크..."
+          for i in {1..3}; do
+            if curl -f http://localhost:8000/api/health; then
+              echo "✅ 롤백 후 서비스 정상 (${i}회 시도)"
+              break
+            fi
+            if [ $i -eq 3 ]; then
+              echo "❌ 롤백 후에도 서비스 문제 지속"
+              echo "📋 서비스 로그 확인:"
+              sudo journalctl -u ams-backend --since "5 minutes ago" --no-pager | tail -20
+            fi
+            sleep 2
+          done
+
+          echo "✅ 간단 롤백 완료"
+
+      - name: Quick Post-deployment Summary
         if: always()
         run: |
-          echo "🧹 배포 후 디스크 공간 정리..."
+          echo "📊 배포 완료 요약..."
 
-          # pip 캐시 정리
-          pip cache purge || true
+          # 최종 디스크 사용량만 확인
+          DISK_USAGE=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+          echo "최종 디스크 사용량: ${DISK_USAGE}%"
 
-          # 임시 파일 정리
-          rm -rf /tmp/pip-* || true
-          rm -rf /tmp/tmp* || true
+          # 서비스 상태 확인
+          echo "서비스 상태:"
+          sudo systemctl is-active ams-backend || echo "서비스 비활성"
 
-          # 오래된 백업 정리 (3일 이상으로 단축)
-          find . -name "backup*" -type d -mtime +3 -exec rm -rf {} + || true
-          find /home/ubuntu -name "ams-back.backup.*" -type d -mtime +3 -exec rm -rf {} + || true
-
-          # 최종 디스크 사용량 확인
-          echo "최종 디스크 사용량:"
-          df -h
-
-          # 디렉토리별 사용량 확인
-          echo "홈 디렉토리 사용량:"
-          du -h --max-depth=1 /home/ubuntu | sort -hr | head -10
-
-          echo "✅ 정리 완료"
+          echo "✅ 빠른 배포 프로세스 완료!"
 
   # 배포 후 검증
   post-deployment-check:
