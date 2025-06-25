@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 import os
 import logging
+from datetime import datetime
 from dotenv import load_dotenv
 
 # 로깅 설정 임포트
@@ -65,6 +66,18 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 @app.get("/")
 async def root():
 	return {"message": "Welcome to AMS API"}
+
+@app.get("/api/health")
+async def health_check():
+	"""
+	Health check endpoint for monitoring and deployment scripts
+	"""
+	return {
+		"status": "healthy",
+		"timestamp": datetime.now().isoformat(),
+		"service": "AMS Backend API",
+		"version": "1.0.0"
+	}
 
 if __name__ == "__main__":
 	port = int(os.getenv("PORT", 8000))

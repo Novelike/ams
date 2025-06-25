@@ -68,34 +68,56 @@ asset_matcher = None
 confidence_evaluator = None
 fuzzy_matcher = None
 
-async def initialize_services():
+async def initialize_services(force_reset: bool = False):
     """서비스 인스턴스 초기화"""
     global asset_matcher, confidence_evaluator, fuzzy_matcher
 
+    # 강제 리셋이 요청된 경우 모든 서비스를 None으로 설정
+    if force_reset:
+        registration_logger.info("서비스 강제 리셋 중...")
+        asset_matcher = None
+        confidence_evaluator = None
+        fuzzy_matcher = None
+
     if asset_matcher is None:
         registration_logger.info("자산 매칭 서비스 초기화 중...")
-        config = AssetMatcherConfig(
-            cache_ttl=3600,
-            max_workers=4,
-            enable_cache=True,
-            min_similarity_threshold=0.7
-        )
-        asset_matcher = EnhancedAssetMatcher(config)
-        await asset_matcher.initialize()
+        try:
+            config = AssetMatcherConfig(
+                cache_ttl=3600,
+                max_workers=4,
+                enable_cache=True,
+                data_dir="data/assets"
+            )
+            asset_matcher = EnhancedAssetMatcher(config)
+            await asset_matcher.initialize()
+            registration_logger.info("자산 매칭 서비스 초기화 완료")
+        except Exception as e:
+            registration_logger.error(f"자산 매칭 서비스 초기화 실패: {str(e)}")
+            asset_matcher = None
 
     if confidence_evaluator is None:
         registration_logger.info("신뢰도 평가 서비스 초기화 중...")
-        thresholds = ConfidenceThresholds(
-            high=0.85,
-            medium=0.65,
-            low=0.45,
-            very_low=0.25
-        )
-        confidence_evaluator = ConfidenceEvaluator(thresholds)
+        try:
+            thresholds = ConfidenceThresholds(
+                high=0.85,
+                medium=0.65,
+                low=0.45,
+                very_low=0.25
+            )
+            confidence_evaluator = ConfidenceEvaluator(thresholds)
+            registration_logger.info("신뢰도 평가 서비스 초기화 완료")
+        except Exception as e:
+            registration_logger.error(f"신뢰도 평가 서비스 초기화 실패: {str(e)}")
+            confidence_evaluator = None
 
     if fuzzy_matcher is None:
         registration_logger.info("퍼지 매칭 서비스 초기화 중...")
-        fuzzy_matcher = FuzzyMatcher()
+        try:
+            fuzzy_matcher = FuzzyMatcher()
+            registration_logger.info("퍼지 매칭 서비스 초기화 완료")
+        except Exception as e:
+            registration_logger.error(f"퍼지 매칭 서비스 초기화 실패: {str(e)}")
+            fuzzy_matcher = None
 
     registration_logger.info("모든 검증 서비스 초기화 완료")
 
@@ -1060,18 +1082,44 @@ async def get_verification_stats():
 	registration_logger.info("검증 시스템 통계 요청 수신")
 
 	try:
-		# 서비스 초기화 확인
-		await initialize_services()
+		# 서비스 초기화 확인 (강제 리셋으로 새로 초기화)
+		await initialize_services(force_reset=True)
 
 		# 각 서비스의 통계 수집
-		matcher_stats = asset_matcher.get_stats() if asset_matcher else {}
-		evaluator_stats = confidence_evaluator.get_stats() if confidence_evaluator else {}
-		fuzzy_stats = fuzzy_matcher.get_cache_stats() if fuzzy_matcher else {}
+		matcher_stats = {}
+		evaluator_stats = {}
+		fuzzy_stats = {}
+
+		if asset_matcher:
+			try:
+				matcher_stats = asset_matcher.get_stats()
+			except Exception as e:
+				registration_logger.warning(f"자산 매처 통계 수집 실패: {str(e)}")
+				matcher_stats = {"error": str(e)}
+
+		if confidence_evaluator:
+			try:
+				evaluator_stats = confidence_evaluator.get_stats()
+			except Exception as e:
+				registration_logger.warning(f"신뢰도 평가기 통계 수집 실패: {str(e)}")
+				evaluator_stats = {"error": str(e)}
+
+		if fuzzy_matcher:
+			try:
+				fuzzy_stats = fuzzy_matcher.get_cache_stats()
+			except Exception as e:
+				registration_logger.warning(f"퍼지 매처 통계 수집 실패: {str(e)}")
+				fuzzy_stats = {"error": str(e)}
 
 		return {
 			"asset_matcher": matcher_stats,
 			"confidence_evaluator": evaluator_stats,
 			"fuzzy_matcher": fuzzy_stats,
+			"services_initialized": {
+				"asset_matcher": asset_matcher is not None,
+				"confidence_evaluator": confidence_evaluator is not None,
+				"fuzzy_matcher": fuzzy_matcher is not None
+			},
 			"status": "success"
 		}
 
@@ -1857,6 +1905,36 @@ async def get_job_status(job_id: str):
 		raise HTTPException(
 			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
 			detail=f"OCR 작업 상태 조회 실패: {str(e)}"
+		)
+
+
+@router.post("/services/reset")
+async def reset_services():
+	"""
+	서비스 강제 리셋 (개발/디버깅용)
+	"""
+	registration_logger.info("서비스 강제 리셋 요청 수신")
+
+	try:
+		global asset_matcher, confidence_evaluator, fuzzy_matcher
+
+		# 모든 서비스를 None으로 설정
+		asset_matcher = None
+		confidence_evaluator = None
+		fuzzy_matcher = None
+
+		registration_logger.info("모든 서비스가 리셋되었습니다")
+
+		return {
+			"message": "모든 서비스가 성공적으로 리셋되었습니다",
+			"status": "success"
+		}
+
+	except Exception as e:
+		registration_logger.error(f"서비스 리셋 중 오류 발생: {str(e)}")
+		raise HTTPException(
+			status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			detail=f"서비스 리셋 실패: {str(e)}"
 		)
 
 

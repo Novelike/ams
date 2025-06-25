@@ -1,6 +1,6 @@
 @echo off
 echo === 백엔드 API 서버 연결 확인 ===
-curl -s -o nul -w "%%{http_code}" http://prod_server:8000/api/health > temp.txt
+curl -s -o nul -w "%%{http_code}" http://ams-api.novelike.dev:8000/api/health > temp.txt
 set /p STATUS=<temp.txt
 del temp.txt
 
