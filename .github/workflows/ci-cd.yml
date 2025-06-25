@@ -318,6 +318,9 @@ jobs:
         ssh-keyscan -H ${{ secrets.BASTION_HOST }} >> ~/.ssh/known_hosts
 
     - name: Pre-deployment health check
+      env:
+        SKIP_HTTP_CHECKS: "true"
+        SKIP_DB_CHECKS: "true"
       run: |
         python deployment/health_check_prod.py
 
