@@ -120,6 +120,10 @@ for i in {1..10}; do
                     exit $exit_code
                 fi
             }
+            if [ ! -d "venv" ]; then
+                log_info "롤백용 가상환경 생성 중..."
+                python3 -m venv venv
+            fi
             source venv/bin/activate
             sudo systemctl restart $SERVICE_NAME
             log_success "롤백 완료"
