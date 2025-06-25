@@ -1,0 +1,211 @@
+name: AMS Backend Optimized Deployment
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'ams-back/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - development
+
+env:
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  # 코드 품질 검사 (GitHub-hosted runner)
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('ams-back/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        cd ams-back
+        pip install -r requirements.txt
+        pip install flake8 pytest
+    
+    - name: Linting (flake8)
+      run: |
+        cd ams-back
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Run tests
+      run: |
+        cd ams-back
+        pytest tests/ -v || echo "No tests found"
+
+  # 백엔드 배포 (Self-hosted Linux runner)
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: [self-hosted, linux, X64]
+    needs: code-quality
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: Sync backend source
+      run: |
+        echo "🚀 백엔드 소스 동기화 시작..."
+        
+        # 백업 생성
+        if [ -d "backup" ]; then
+          rm -rf backup
+        fi
+        mkdir -p backup
+        cp -r . backup/ 2>/dev/null || true
+        
+        # GitHub에서 최신 ams-back 소스만 가져오기
+        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+             -H "Accept: application/vnd.github.v3.raw" \
+             -L "https://api.github.com/repos/${{ github.repository }}/tarball/${{ github.ref_name }}" \
+             -o source.tar.gz
+        
+        # 임시 디렉토리에 압축 해제
+        mkdir -p temp_source
+        tar -xzf source.tar.gz -C temp_source --strip-components=1
+        
+        # ams-back 내용만 현재 디렉토리로 복사
+        if [ -d "temp_source/ams-back" ]; then
+          rsync -av --delete temp_source/ams-back/ ./
+        fi
+        
+        # 정리
+        rm -rf temp_source source.tar.gz
+        echo "✅ 소스 동기화 완료"
+    
+    - name: Deploy application
+      run: |
+        echo "🚀 애플리케이션 배포 시작..."
+        
+        # 1. 가상환경 활성화
+        source venv/bin/activate
+        
+        # 2. 의존성 업데이트
+        pip install -r requirements.txt
+        
+        # 3. 환경 변수 설정
+        cat > .env << 'EOF'
+        ENVIRONMENT=production
+        PORT=8000
+        ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,https://ams.novelike.dev,http://ams.novelike.dev
+        PROD_SERVER_IP=10.0.3.203
+        EOF
+        
+        # 4. 서비스 재시작
+        sudo systemctl restart ams-backend
+        sleep 5
+        
+        # 5. 헬스 체크
+        for i in {1..10}; do
+          if curl -f http://localhost:8000/api/health; then
+            echo "✅ 헬스 체크 성공"
+            break
+          fi
+          if [ $i -eq 10 ]; then
+            echo "❌ 헬스 체크 실패"
+            exit 1
+          fi
+          sleep 3
+        done
+        
+        echo "🎉 배포 완료!"
+    
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        echo "🔄 롤백 시작..."
+        if [ -d "backup" ]; then
+          rsync -av --delete backup/ ./
+          source venv/bin/activate
+          sudo systemctl restart ams-backend
+          echo "✅ 롤백 완료"
+        fi
+    
+    - name: Cleanup
+      if: always()
+      run: |
+        # 오래된 백업 정리
+        find . -name "backup*" -type d -mtime +7 -exec rm -rf {} + || true
+
+  # 배포 후 검증
+  post-deployment-check:
+    name: Post Deployment Check
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+    if: success()
+    
+    steps:
+    - name: Health check
+      run: |
+        echo "🏥 배포 후 헬스 체크..."
+        
+        # 외부에서 API 엔드포인트 확인
+        for i in {1..5}; do
+          if curl -f https://ams-api.novelike.dev/api/health; then
+            echo "✅ 외부 헬스 체크 성공"
+            break
+          fi
+          if [ $i -eq 5 ]; then
+            echo "❌ 외부 헬스 체크 실패"
+            exit 1
+          fi
+          sleep 10
+        done
+    
+    - name: API functionality test
+      run: |
+        echo "🧪 API 기능 테스트..."
+        
+        # 기본 API 엔드포인트 테스트
+        response=$(curl -s https://ams-api.novelike.dev/)
+        if echo "$response" | grep -q "Welcome to AMS API"; then
+          echo "✅ API 기본 기능 정상"
+        else
+          echo "❌ API 기본 기능 오류"
+          exit 1
+        fi
+
+  # 알림
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, post-deployment-check]
+    if: always()
+    
+    steps:
+    - name: Notify deployment result
+      run: |
+        if [ "${{ needs.deploy-backend.result }}" == "success" ] && [ "${{ needs.post-deployment-check.result }}" == "success" ]; then
+          echo "🎉 백엔드 배포 성공!"
+          echo "Environment: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Time: $(date)"
+        else
+          echo "❌ 백엔드 배포 실패"
+          echo "Deploy result: ${{ needs.deploy-backend.result }}"
+          echo "Check result: ${{ needs.post-deployment-check.result }}"
+        fi

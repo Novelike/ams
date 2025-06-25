@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 import uvicorn
 import os
 import logging
@@ -30,7 +31,8 @@ logger.info("FastAPI 애플리케이션 생성 완료")
 
 # Configure CORS
 # Get allowed origins from environment variable or use default values
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173")
+allowed_origins = os.getenv("ALLOWED_ORIGINS",
+                            "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173")
 origins = allowed_origins.split(",")
 
 # Add production server origin if PROD_SERVER_IP is set
@@ -50,6 +52,23 @@ app.add_middleware(
 	allow_headers=["*"],
 )
 
+# 파일 크기 제한 미들웨어 추가
+@app.middleware("http")
+async def limit_upload_size(request: Request, call_next):
+    if request.method == "POST" and "/upload" in str(request.url):
+        content_length = request.headers.get("content-length")
+        if content_length:
+            content_length = int(content_length)
+            max_size = 200 * 1024 * 1024  # 50MB
+            if content_length > max_size:
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": f"파일 크기가 너무 큽니다. 최대 {max_size // (1024*1024)}MB까지 허용됩니다."}
+                )
+
+    response = await call_next(request)
+    return response
+
 # Include routers
 logger.info("라우터 등록 중...")
 app.include_router(dashboard.router)
@@ -63,9 +82,11 @@ logger.info("모든 라우터 등록 완료")
 # Mount static files directory
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
+
 @app.get("/")
 async def root():
 	return {"message": "Welcome to AMS API"}
+
 
 @app.get("/api/health")
 async def health_check():
@@ -79,7 +100,17 @@ async def health_check():
 		"version": "1.0.0"
 	}
 
+
 if __name__ == "__main__":
 	port = int(os.getenv("PORT", 8000))
-	logger.info(f"서버 시작 중... (포트: {port})")
-	uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True, log_config=None)
+	# 환경 변수로 개발/프로덕션 모드 구분
+	is_development = os.getenv("ENVIRONMENT", "production").lower() == "development"
+
+	logger.info(f"서버 시작 중... (포트: {port}, 개발모드: {is_development})")
+	uvicorn.run(
+		"main:app",
+		host="0.0.0.0",
+		port=port,
+		reload=is_development,  # 개발 환경에서만 reload 활성화
+		log_config=None
+	)

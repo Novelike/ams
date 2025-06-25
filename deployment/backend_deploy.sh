@@ -1,0 +1,142 @@
+#!/bin/bash
+# Backend Deployment Script for AMS
+# Optimized for Linux environments
+
+set -e
+
+# 색상 정의
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# 기본 설정
+BRANCH=${1:-"main"}
+REPO_URL="https://github.com/Novelike/ams.git"
+BACKEND_DIR="$HOME/ams-back"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+SERVICE_NAME="ams-backend"
+
+log_info "🚀 AMS 백엔드 배포 시작 - 브랜치: $BRANCH"
+
+# 1. 백업 생성
+log_info "📦 백업 생성 중..."
+if [ -d "$BACKEND_DIR" ]; then
+    cp -r "$BACKEND_DIR" "$BACKEND_DIR.backup.$TIMESTAMP"
+    log_success "백업 생성 완료: $BACKEND_DIR.backup.$TIMESTAMP"
+fi
+
+# 2. 백엔드 소스만 업데이트
+log_info "📥 백엔드 소스 업데이트 중..."
+cd "$BACKEND_DIR"
+
+# Sparse checkout으로 ams-back만 가져오기
+TEMP_DIR=$(mktemp -d)
+cd "$TEMP_DIR"
+git clone --filter=blob:none --sparse "$REPO_URL" temp-repo
+cd temp-repo
+git sparse-checkout set ams-back
+git checkout "$BRANCH"
+
+# 백엔드 소스 복사
+rsync -av --delete ams-back/ "$BACKEND_DIR/"
+cd "$BACKEND_DIR"
+rm -rf "$TEMP_DIR"
+
+log_success "백엔드 소스 업데이트 완료"
+
+# 3. 환경 설정
+log_info "⚙️ 환경 설정 중..."
+cat > .env << 'EOF'
+ENVIRONMENT=production
+PORT=8000
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,https://ams.novelike.dev,http://ams.novelike.dev
+PROD_SERVER_IP=10.0.3.203
+EOF
+
+log_success "환경 변수 설정 완료"
+
+# 4. 가상환경 활성화 및 의존성 설치
+log_info "📦 의존성 설치 중..."
+if [ ! -d "venv" ]; then
+    log_info "가상환경 생성 중..."
+    python3 -m venv venv
+fi
+
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+log_success "의존성 설치 완료"
+
+# 5. 서비스 재시작
+log_info "🔄 서비스 재시작 중..."
+sudo systemctl restart $SERVICE_NAME
+sleep 5
+
+# 6. 헬스 체크
+log_info "🏥 헬스 체크 수행 중..."
+for i in {1..10}; do
+    if curl -f http://localhost:8000/api/health > /dev/null 2>&1; then
+        log_success "헬스 체크 성공"
+        break
+    fi
+    if [ $i -eq 10 ]; then
+        log_error "헬스 체크 실패"
+        
+        # 롤백 수행
+        log_warning "롤백 수행 중..."
+        if [ -d "$BACKEND_DIR.backup.$TIMESTAMP" ]; then
+            rsync -av --delete "$BACKEND_DIR.backup.$TIMESTAMP/" "$BACKEND_DIR/"
+            source venv/bin/activate
+            sudo systemctl restart $SERVICE_NAME
+            log_success "롤백 완료"
+        fi
+        exit 1
+    fi
+    sleep 3
+done
+
+# 7. 서비스 상태 확인
+log_info "📊 서비스 상태 확인 중..."
+sudo systemctl status $SERVICE_NAME --no-pager
+
+# 8. 외부 접근 테스트
+log_info "🌐 외부 접근 테스트 중..."
+if curl -f https://ams-api.novelike.dev/api/health > /dev/null 2>&1; then
+    log_success "외부 접근 테스트 성공"
+else
+    log_warning "외부 접근 테스트 실패 (Nginx 설정 확인 필요)"
+fi
+
+log_success "🎉 백엔드 배포 완료!"
+log_info "🌐 서비스 URL: https://ams-api.novelike.dev"
+
+# 9. 오래된 백업 정리
+log_info "🧹 오래된 백업 정리 중..."
+find "$HOME" -name "ams-back.backup.*" -type d -mtime +7 -exec rm -rf {} + || true
+log_success "정리 완료"
+
+# 10. 배포 정보 출력
+log_info "📋 배포 정보:"
+echo "  - 브랜치: $BRANCH"
+echo "  - 시간: $(date)"
+echo "  - 백업: $BACKEND_DIR.backup.$TIMESTAMP"
+echo "  - 서비스: $SERVICE_NAME"
+echo "  - 포트: 8000"

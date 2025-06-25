@@ -243,7 +243,7 @@ jobs:
   # 개발 환경 배포
   deploy-dev:
     name: Deploy to Development
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, deployment]
     needs: [build-docker, security-scan]
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     environment: development
@@ -293,7 +293,7 @@ jobs:
   # 프로덕션 배포 (Blue-Green)
   deploy-prod:
     name: Deploy to Production (Blue-Green)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, deployment]
     needs: [build-docker, security-scan]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
@@ -342,7 +342,8 @@ jobs:
     - name: Update deployment status
       if: success()
       run: |
-        echo "Deployment successful at $(date)" >> deployment/deployment_history.log
+        echo "Deployment successful at $(Get-Date)" >> deployment/deployment_history.log
+      shell: pwsh
 
     - name: Rollback on failure
       if: failure()
@@ -362,7 +363,7 @@ jobs:
   # 성능 테스트
   performance-test:
     name: Performance Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, deployment]
     needs: deploy-prod
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
@@ -377,10 +378,14 @@ jobs:
 
     - name: Install k6
       run: |
-        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-        sudo apt-get update
-        sudo apt-get install k6
+        # Install k6 for Windows
+        if (!(Get-Command k6 -ErrorAction SilentlyContinue)) {
+          Invoke-WebRequest -Uri "https://github.com/grafana/k6/releases/latest/download/k6-v0.47.0-windows-amd64.zip" -OutFile "k6.zip"
+          Expand-Archive -Path "k6.zip" -DestinationPath "."
+          Move-Item "k6-*\k6.exe" "k6.exe"
+          $env:PATH += ";$(Get-Location)"
+        }
+      shell: pwsh
 
     - name: Run performance tests
       run: |
@@ -395,7 +400,7 @@ jobs:
   # 모니터링 설정
   setup-monitoring:
     name: Setup Monitoring
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, deployment]
     needs: deploy-prod
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     env:
@@ -422,7 +427,7 @@ jobs:
   # 정리 작업
   cleanup:
     name: Cleanup
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, deployment]
     needs: [deploy-prod, performance-test]
     if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
 

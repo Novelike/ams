@@ -1,19 +1,34 @@
 @echo off
 echo === 백엔드 API 서버 연결 확인 ===
-curl -s -o nul -w "%%{http_code}" http://ams-api.novelike.dev:8000/api/health > temp.txt
+
+REM HTTP 상태 코드를 파일로 저장하고 공백 제거
+curl -s -o nul -w "%%{http_code}" https://ams-api.novelike.dev/api/health > temp.txt
 set /p STATUS=<temp.txt
 del temp.txt
 
-if "%STATUS%" == "200" (
-    echo 백엔드 API 서버 연결 성공! (상태 코드: %STATUS%)
+REM 공백 제거
+set STATUS=%STATUS: =%
+
+echo 상태 코드: [%STATUS%]
+echo 상태 코드 길이: 
+echo %STATUS%| find /c /v "" > length.txt
+set /p LENGTH=<length.txt
+del length.txt
+echo 길이: %LENGTH%
+
+REM 숫자 비교 사용
+if %STATUS% EQU 200 (
+    echo 백엔드 API 서버 연결 성공! ^(상태 코드: %STATUS%^)
+    goto :build
 ) else (
-    echo 백엔드 API 서버 연결 실패! (상태 코드: %STATUS%)
-    echo 로컬 개발 환경에서는 localhost:8000을 사용하고, 서버 배포 시에는 prod_server:8000을 사용합니다.
+    echo 백엔드 API 서버 연결 실패! ^(상태 코드: %STATUS%^)
+    echo 로컬 개발 환경에서는 localhost:8000을 사용하고, 서버 배포 시에는 https://ams-api.novelike.dev을 사용합니다.
     echo 서버 연결 상태를 확인하고 다시 시도하세요.
     pause
     exit /b 1
 )
 
+:build
 echo === React 애플리케이션 빌드 시작 ===
 call npm run build
 
