@@ -56,7 +56,15 @@ git sparse-checkout set ams-back
 git checkout "$BRANCH"
 
 # 백엔드 소스 복사
-rsync -av --delete ams-back/ "$BACKEND_DIR/"
+rsync -av --delete --ignore-missing-args ams-back/ "$BACKEND_DIR/" || {
+    exit_code=$?
+    if [ $exit_code -eq 24 ]; then
+        log_warning "rsync warning: some files vanished during transfer (exit code 24) - continuing deployment"
+    else
+        log_error "rsync failed with exit code $exit_code"
+        exit $exit_code
+    fi
+}
 cd "$BACKEND_DIR"
 rm -rf "$TEMP_DIR"
 
@@ -99,11 +107,19 @@ for i in {1..10}; do
     fi
     if [ $i -eq 10 ]; then
         log_error "헬스 체크 실패"
-        
+
         # 롤백 수행
         log_warning "롤백 수행 중..."
         if [ -d "$BACKEND_DIR.backup.$TIMESTAMP" ]; then
-            rsync -av --delete "$BACKEND_DIR.backup.$TIMESTAMP/" "$BACKEND_DIR/"
+            rsync -av --delete --ignore-missing-args "$BACKEND_DIR.backup.$TIMESTAMP/" "$BACKEND_DIR/" || {
+                exit_code=$?
+                if [ $exit_code -eq 24 ]; then
+                    log_warning "rsync warning during rollback: some files vanished during transfer (exit code 24) - continuing rollback"
+                else
+                    log_error "rsync rollback failed with exit code $exit_code"
+                    exit $exit_code
+                fi
+            }
             source venv/bin/activate
             sudo systemctl restart $SERVICE_NAME
             log_success "롤백 완료"
