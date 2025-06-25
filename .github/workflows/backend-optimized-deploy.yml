@@ -66,114 +66,156 @@ jobs:
     needs: code-quality
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
 
+    # 작업 디렉토리를 명시적으로 설정
+    defaults:
+      run:
+        working-directory: /home/ubuntu/ams-back
+
     steps:
-    - name: Sync backend source
-      run: |
-        echo "🚀 백엔드 소스 동기화 시작..."
+      - name: Ensure working directory exists
+        run: |
+          echo "🏠 작업 디렉토리 확인 및 생성..."
+          mkdir -p /home/ubuntu/ams-back
+          cd /home/ubuntu/ams-back
+          echo "현재 작업 디렉토리: $(pwd)"
+          echo "디렉토리 내용:"
+          ls -la || echo "디렉토리가 비어있습니다"
 
-        # 백업 생성
-        if [ -d "backup" ]; then
-          rm -rf backup
-        fi
-        mkdir -p backup
-        cp -r . backup/ 2>/dev/null || true
-
-        # GitHub에서 최신 ams-back 소스만 가져오기
-        curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-             -H "Accept: application/vnd.github.v3.raw" \
-             -L "https://api.github.com/repos/${{ github.repository }}/tarball/${{ github.ref_name }}" \
-             -o source.tar.gz
-
-        # 임시 디렉토리에 압축 해제
-        mkdir -p temp_source
-        tar -xzf source.tar.gz -C temp_source --strip-components=1
-
-        # ams-back 내용만 현재 디렉토리로 복사
-        if [ -d "temp_source/ams-back" ]; then
-          rsync -av --delete --ignore-missing-args temp_source/ams-back/ ./ || {
-            exit_code=$?
-            if [ $exit_code -eq 24 ]; then
-              echo "⚠️ rsync warning: some files vanished during transfer (exit code 24) - continuing deployment"
-            else
-              echo "❌ rsync failed with exit code $exit_code"
-              exit $exit_code
-            fi
-          }
-        fi
-
-        # 정리
-        rm -rf temp_source source.tar.gz
-        echo "✅ 소스 동기화 완료"
-
-    - name: Deploy application
-      run: |
-        echo "🚀 애플리케이션 배포 시작..."
-
-        # 1. 가상환경 생성 및 활성화
-        if [ ! -d "venv" ]; then
-          echo "📦 가상환경 생성 중..."
-          python3 -m venv venv
-        fi
-        source venv/bin/activate
-
-        # 2. 의존성 업데이트
-        pip install -r requirements.txt
-
-        # 3. 환경 변수 설정
-        cat > .env << 'EOF'
-        ENVIRONMENT=production
-        PORT=8000
-        ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,https://ams.novelike.dev,http://ams.novelike.dev
-        PROD_SERVER_IP=10.0.3.203
-        EOF
-
-        # 4. 서비스 재시작
-        sudo systemctl restart ams-backend
-        sleep 5
-
-        # 5. 헬스 체크
-        for i in {1..10}; do
-          if curl -f http://localhost:8000/api/health; then
-            echo "✅ 헬스 체크 성공"
-            break
+      - name: Sync backend source
+        run: |
+          echo "🚀 백엔드 소스 동기화 시작..."
+          echo "현재 작업 디렉토리: $(pwd)"
+          
+          # 백업 생성
+          if [ -d "backup" ]; then
+            rm -rf backup
           fi
-          if [ $i -eq 10 ]; then
-            echo "❌ 헬스 체크 실패"
+          mkdir -p backup
+          cp -r . backup/ 2>/dev/null || true
+          
+          # GitHub에서 최신 ams-back 소스만 가져오기
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+               -H "Accept: application/vnd.github.v3.raw" \
+               -L "https://api.github.com/repos/${{ github.repository }}/tarball/${{ github.ref_name }}" \
+               -o source.tar.gz
+          
+          # 임시 디렉토리에 압축 해제
+          mkdir -p temp_source
+          tar -xzf source.tar.gz -C temp_source --strip-components=1
+          
+          # ams-back 내용만 현재 디렉토리로 복사
+          if [ -d "temp_source/ams-back" ]; then
+            echo "📁 ams-back 디렉토리 발견, 내용을 복사합니다..."
+            rsync -av --delete --ignore-missing-args temp_source/ams-back/ ./ || {
+              exit_code=$?
+              if [ $exit_code -eq 24 ]; then
+                echo "⚠️ rsync warning: some files vanished during transfer (exit code 24) - continuing deployment"
+              else
+                echo "❌ rsync failed with exit code $exit_code"
+                exit $exit_code
+              fi
+            }
+          else
+            echo "❌ temp_source/ams-back 디렉토리를 찾을 수 없습니다"
+            echo "사용 가능한 디렉토리:"
+            ls -la temp_source/
             exit 1
           fi
-          sleep 3
-        done
+          
+          # 정리
+          rm -rf temp_source source.tar.gz
+          
+          # 결과 확인
+          echo "✅ 소스 동기화 완료"
+          echo "현재 디렉토리 내용:"
+          ls -la
+          echo "requirements.txt 존재 확인:"
+          if [ -f "requirements.txt" ]; then
+            echo "✅ requirements.txt 파일 존재"
+            head -5 requirements.txt
+          else
+            echo "❌ requirements.txt 파일이 없습니다"
+            exit 1
+          fi
 
-        echo "🎉 배포 완료!"
-
-    - name: Rollback on failure
-      if: failure()
-      run: |
-        echo "🔄 롤백 시작..."
-        if [ -d "backup" ]; then
-          rsync -av --delete --ignore-missing-args backup/ ./ || {
-            exit_code=$?
-            if [ $exit_code -eq 24 ]; then
-              echo "⚠️ rsync warning during rollback: some files vanished during transfer (exit code 24) - continuing rollback"
-            else
-              echo "❌ rsync rollback failed with exit code $exit_code"
-              exit $exit_code
-            fi
-          }
+      - name: Deploy application
+        run: |
+          echo "🚀 애플리케이션 배포 시작..."
+          echo "현재 작업 디렉토리: $(pwd)"
+          
+          # requirements.txt 재확인
+          if [ ! -f "requirements.txt" ]; then
+            echo "❌ requirements.txt 파일이 없습니다. 배포를 중단합니다."
+            exit 1
+          fi
+          
+          # 1. 가상환경 생성 및 활성화
           if [ ! -d "venv" ]; then
-            echo "📦 롤백용 가상환경 생성 중..."
+            echo "📦 가상환경 생성 중..."
             python3 -m venv venv
           fi
           source venv/bin/activate
+          
+          # 2. 의존성 업데이트
+          echo "📦 의존성 설치 중..."
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          
+          # 3. 환경 변수 설정
+          cat > .env << 'EOF'
+          ENVIRONMENT=production
+          PORT=8000
+          ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,https://ams.novelike.dev,http://ams.novelike.dev
+          PROD_SERVER_IP=10.0.3.203
+          EOF
+          
+          # 4. 서비스 재시작
           sudo systemctl restart ams-backend
-          echo "✅ 롤백 완료"
-        fi
+          sleep 5
+          
+          # 5. 헬스 체크
+          for i in {1..10}; do
+            if curl -f http://localhost:8000/api/health; then
+              echo "✅ 헬스 체크 성공"
+              break
+            fi
+            if [ $i -eq 10 ]; then
+              echo "❌ 헬스 체크 실패"
+              exit 1
+            fi
+            sleep 3
+          done
+          
+          echo "🎉 배포 완료!"
 
-    - name: Cleanup
-      if: always()
-      run: |
-        # 오래된 백업 정리
-        find . -name "backup*" -type d -mtime +7 -exec rm -rf {} + || true
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 롤백 시작..."
+          if [ -d "backup" ]; then
+            rsync -av --delete --ignore-missing-args backup/ ./ || {
+              exit_code=$?
+              if [ $exit_code -eq 24 ]; then
+                echo "⚠️ rsync warning during rollback: some files vanished during transfer (exit code 24) - continuing rollback"
+              else
+                echo "❌ rsync rollback failed with exit code $exit_code"
+                exit $exit_code
+              fi
+            }
+            if [ ! -d "venv" ]; then
+              echo "📦 롤백용 가상환경 생성 중..."
+              python3 -m venv venv
+            fi
+            source venv/bin/activate
+            sudo systemctl restart ams-backend
+            echo "✅ 롤백 완료"
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # 오래된 백업 정리
+          find . -name "backup*" -type d -mtime +7 -exec rm -rf {} + || true
 
   # 배포 후 검증
   post-deployment-check:
