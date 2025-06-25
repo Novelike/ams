@@ -391,13 +391,14 @@ jobs:
     name: Setup Monitoring
     runs-on: ubuntu-latest
     needs: deploy-prod
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.GRAFANA_API_KEY != '' && secrets.PROMETHEUS_URL != ''
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Configure monitoring alerts
+        if: secrets.GRAFANA_API_KEY && secrets.PROMETHEUS_URL
         env:
           GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
           PROMETHEUS_URL: ${{ secrets.PROMETHEUS_URL }}
@@ -405,6 +406,7 @@ jobs:
           python deployment/setup_monitoring.py
 
       - name: Test monitoring endpoints
+        if: secrets.GRAFANA_API_KEY && secrets.PROMETHEUS_URL
         run: |
           python deployment/test_monitoring.py
 
