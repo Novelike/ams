@@ -280,7 +280,7 @@ jobs:
         python deployment/test_deployment.py --environment=development
         
     - name: Notify deployment status
-      if: always() && secrets.SLACK_WEBHOOK_URL != ''
+      if: always() && env.SLACK_WEBHOOK_URL != ''
       uses: 8398a7/action-slack@v3
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -344,7 +344,7 @@ jobs:
         python deployment/emergency_rollback.py
         
     - name: Notify deployment status
-      if: always() && secrets.SLACK_WEBHOOK_URL != ''
+      if: always() && env.SLACK_WEBHOOK_URL != ''
       uses: 8398a7/action-slack@v3
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
