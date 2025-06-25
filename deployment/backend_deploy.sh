@@ -81,16 +81,37 @@ EOF
 
 log_success "환경 변수 설정 완료"
 
-# 4. 가상환경 활성화 및 의존성 설치
-log_info "📦 의존성 설치 중..."
+# 4. 디스크 공간 정리
+log_info "🧹 배포 전 디스크 공간 정리 중..."
+# pip 캐시 정리
+pip cache purge || true
+# 임시 파일 정리
+sudo rm -rf /tmp/pip-* /tmp/tmp* || true
+# 오래된 백업 정리 (1일 이상)
+find "$HOME" -name "ams-back.backup.*" -type d -mtime +1 -exec rm -rf {} + || true
+log_success "사전 정리 완료"
+
+# 5. 가상환경 활성화 및 의존성 설치 (최적화)
+log_info "📦 의존성 설치 중 (캐시 최적화)..."
 if [ ! -d "venv" ]; then
     log_info "가상환경 생성 중..."
     python3 -m venv venv
 fi
 
 source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
+
+# pip 캐시 정리 후 최적화된 설치
+pip cache purge
+pip install --upgrade pip --no-cache-dir
+
+# 임시 캐시 디렉토리 사용하여 설치
+pip install -r requirements.txt \
+    --cache-dir /tmp/pip-cache \
+    --no-warn-script-location
+
+# 임시 캐시 즉시 정리
+rm -rf /tmp/pip-cache
+
 log_success "의존성 설치 완료"
 
 # 5. 서비스 재시작
@@ -125,6 +146,15 @@ for i in {1..10}; do
                 python3 -m venv venv
             fi
             source venv/bin/activate
+
+            # 롤백 후 필요시 의존성 재설치
+            if [ -f "requirements.txt" ]; then
+                log_info "롤백 후 의존성 재설치 중..."
+                pip install --upgrade pip --no-cache-dir
+                pip install -r requirements.txt --cache-dir /tmp/pip-cache --no-warn-script-location
+                rm -rf /tmp/pip-cache
+            fi
+
             sudo systemctl restart $SERVICE_NAME
             log_success "롤백 완료"
         fi
@@ -148,9 +178,26 @@ fi
 log_success "🎉 백엔드 배포 완료!"
 log_info "🌐 서비스 URL: https://ams-api.novelike.dev"
 
-# 9. 오래된 백업 정리
-log_info "🧹 오래된 백업 정리 중..."
-find "$HOME" -name "ams-back.backup.*" -type d -mtime +7 -exec rm -rf {} + || true
+# 9. 배포 후 디스크 공간 정리
+log_info "🧹 배포 후 디스크 공간 정리 중..."
+
+# pip 캐시 정리
+pip cache purge || true
+
+# 임시 파일 정리
+sudo rm -rf /tmp/pip-* /tmp/tmp* || true
+
+# 오래된 백업 정리 (3일 이상으로 단축)
+find "$HOME" -name "ams-back.backup.*" -type d -mtime +3 -exec rm -rf {} + || true
+
+# 최종 디스크 사용량 확인
+echo "최종 디스크 사용량:"
+df -h
+
+# 디렉토리별 사용량 확인
+echo "홈 디렉토리 사용량:"
+du -h --max-depth=1 "$HOME" | sort -hr | head -10
+
 log_success "정리 완료"
 
 # 10. 배포 정보 출력
@@ -160,3 +207,4 @@ echo "  - 시간: $(date)"
 echo "  - 백업: $BACKEND_DIR.backup.$TIMESTAMP"
 echo "  - 서비스: $SERVICE_NAME"
 echo "  - 포트: 8000"
+echo "  - 디스크 사용량: $(df -h / | awk 'NR==2{print $5}')"
